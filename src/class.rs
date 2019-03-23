@@ -92,21 +92,29 @@ impl<'a> ObjcClass<'a> {
         }
     }
 
-    fn initialize_dtable(&mut self, _ctx: &mut Context) {
-        let mut table = Box::new(HashMap::new());
+    pub fn registry_method(
+        &mut self,
+        name: StrPtr,
+        method: &'a ObjcMethod<'a>,
+    ) -> Option<&ObjcMethod<'a>> {
+        self.dtable
+            .as_mut()
+            .expect("dtable is not initialized")
+            .insert(name, method)
+    }
 
+    fn initialize_dtable(&mut self, _ctx: &mut Context) {
+        self.dtable = Some(Box::new(HashMap::new()));
         let mut method_list_ptr = self.methods.clone();
         while let Some(method_list) = method_list_ptr {
             for i in 0..method_list.method_count() {
                 let method = method_list.nth_method(i).unwrap();
                 let method_name =
                     unsafe { mem::transmute::<Sel, StrPtr>(method.get_name().clone()) };
-                table.insert(method_name, method);
+                self.registry_method(method_name, method);
             }
             method_list_ptr = method_list.get_next().clone();
         }
-
-        self.dtable = Some(table);
     }
 }
 
