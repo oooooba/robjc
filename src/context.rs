@@ -41,12 +41,8 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn get_class_table(&self) -> &HashMap<StrPtr, ClassTableEntry<'a>> {
-        &self.class_table
-    }
-
-    pub fn get_orphan_classes(&self) -> &Vec<&'a mut ObjcClass<'a>> {
-        &self.orphan_classes
+    pub fn get_class_entry(&self, name: &StrPtr) -> Option<&ClassTableEntry<'a>> {
+        self.class_table.get(name)
     }
 
     pub fn load_module(&mut self, module: &'a ObjcModule) {

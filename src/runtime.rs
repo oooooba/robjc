@@ -117,7 +117,7 @@ pub extern "C" fn objc_getClass(name: StrPtr) -> Class<'static> {
 #[no_mangle]
 pub extern "C" fn objc_get_class(name: StrPtr) -> Class<'static> {
     let ctx = CONTEXT.read().unwrap();
-    match ctx.get_class_table().get(&name) {
+    match ctx.get_class_entry(&name) {
         Some(entry) => Class(Some(entry.get_class())),
         None => Class(None),
     }

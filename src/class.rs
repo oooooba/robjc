@@ -80,7 +80,7 @@ impl<'a> ObjcClass<'a> {
             return true;
         }
         let super_class_name: StrPtr = unsafe { mem::transmute(self.super_pointer.unwrap()) };
-        if let Some(entry) = ctx.get_class_table().get(&super_class_name) {
+        if let Some(entry) = ctx.get_class_entry(&super_class_name) {
             self.super_pointer = Some(if self.is_meta() {
                 entry.get_meta_class()
             } else {
