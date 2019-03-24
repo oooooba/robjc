@@ -7,6 +7,16 @@ use super::class::ObjcClass;
 use super::module::ObjcModule;
 use super::str_ptr::StrPtr;
 
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ClassHandle(usize);
+
+impl ClassHandle {
+    fn new<'a>(class: &'a ObjcClass<'a>) -> ClassHandle {
+        ClassHandle(class as *const ObjcClass as usize)
+    }
+}
+
 pub struct ClassTableEntry<'a> {
     class: &'a ObjcClass<'a>,
     meta_class: &'a ObjcClass<'a>,
@@ -45,38 +55,47 @@ impl<'a> Context<'a> {
         self.class_table.get(name)
     }
 
+    pub fn deref_class(&self, handle: ClassHandle) -> &'a ObjcClass<'a> {
+        unsafe { &*(handle.0 as *const ObjcClass) }
+    }
+
+    fn register_class(&mut self, class: &'a ObjcClass<'a>) -> ClassHandle {
+        let handle = ClassHandle::new(class);
+        handle
+    }
+
+    fn register_class_pair(&mut self, class: &'a ObjcClass<'a>) -> (ClassHandle, ClassHandle) {
+        assert!(class.is_class());
+        let class_handle = self.register_class(class);
+
+        let meta_class = class.get_class_pointer();
+        let meta_class_handle = self.register_class(meta_class);
+
+        let name = class.get_name().clone();
+        let entry = ClassTableEntry::new(class, meta_class);
+        self.class_table.insert(name, entry);
+
+        (class_handle, meta_class_handle)
+    }
+
     pub fn load_module(&mut self, module: &'a ObjcModule) {
         let symtab = module.get_symtab();
         for i in 0..symtab.cls_def_cnt() {
             let class = symtab.nth_class_ptr_mut(i).unwrap();
             class.initialize(self);
-            unsafe { class.get_mut_class_pointer() }.initialize(self);
-            let name = class.get_name().clone();
-            let entry = ClassTableEntry::new(class, class.get_class_pointer());
-            self.class_table.insert(name, entry);
-        }
-
-        // rewrite super pointer of class
-        for i in 0..symtab.cls_def_cnt() {
-            let class = symtab.nth_class_ptr_mut(i).unwrap();
             if !class.initialize_super_pointer(self) {
                 self.orphan_classes.push(class);
             }
-        }
 
-        // rewrite super pointer of meta class
-        for i in 0..symtab.cls_def_cnt() {
-            let class = symtab.nth_class_ptr_mut(i).unwrap();
-            let meta_class = unsafe { class.get_mut_class_pointer() };
+            let meta_class =
+                unsafe { symtab.nth_class_ptr_mut(i).unwrap().get_mut_class_pointer() };
+            meta_class.initialize(self);
             if !meta_class.initialize_super_pointer(self) {
                 self.orphan_classes.push(meta_class);
             }
-        }
 
-        // registry categories
-        for i in 0..symtab.cat_def_cnt() {
-            let category = symtab.nth_category_ptr(i).unwrap();
-            println!("{:?}", category);
+            let class = symtab.nth_class_ptr_mut(i).unwrap();
+            self.register_class_pair(class);
         }
 
         let mut num_orphan_classes = self.orphan_classes.len();
