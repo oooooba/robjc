@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::mem;
+use std::num;
 use std::sync;
 
 use super::category::ObjcCategory;
@@ -9,11 +10,11 @@ use super::str_ptr::StrPtr;
 
 #[repr(transparent)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ClassHandle(usize);
+pub struct ClassHandle(num::NonZeroUsize);
 
 impl ClassHandle {
-    fn new<'a>(class: &'a ObjcClass<'a>) -> ClassHandle {
-        ClassHandle(class as *const ObjcClass as usize)
+    pub fn new<'a>(class: &'a ObjcClass<'a>) -> ClassHandle {
+        ClassHandle(unsafe { num::NonZeroUsize::new_unchecked(class as *const ObjcClass as usize) })
     }
 }
 
@@ -56,7 +57,7 @@ impl<'a> Context<'a> {
     }
 
     pub fn deref_class(&self, handle: ClassHandle) -> &'a ObjcClass<'a> {
-        unsafe { &*(handle.0 as *const ObjcClass) }
+        unsafe { &*(handle.0.get() as *const ObjcClass) }
     }
 
     fn register_class(&mut self, class: &'a ObjcClass<'a>) -> ClassHandle {

@@ -18,7 +18,7 @@ use std::os::raw;
 use std::ptr;
 
 use class::ObjcClass;
-use context::CONTEXT;
+use context::{ClassHandle, CONTEXT};
 use ivar::ObjcIvar;
 use method::{CodePtr, ObjcMethod};
 use module::ObjcModule;
@@ -53,6 +53,10 @@ pub struct Ivar<'a>(Option<&'a ObjcIvar>);
 #[repr(transparent)]
 #[derive(Clone, Debug)]
 pub struct Class<'a>(Option<&'a ObjcClass<'a>>);
+
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Class2(Option<ClassHandle>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
