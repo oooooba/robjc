@@ -18,7 +18,7 @@ use std::os::raw;
 use std::ptr;
 
 use class::ObjcClass;
-use context::{ClassHandle, CONTEXT};
+use context::{ClassHandle, ObjectHandle, CONTEXT};
 use ivar::ObjcIvar;
 use method::{CodePtr, ObjcMethod};
 use module::ObjcModule;
@@ -61,6 +61,10 @@ pub struct Class2(Option<ClassHandle>);
 #[repr(transparent)]
 #[derive(Clone, Debug)]
 pub struct Id<'a>(Option<&'a ObjcObject<'a>>);
+
+#[repr(transparent)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Id2(Option<ObjectHandle>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
