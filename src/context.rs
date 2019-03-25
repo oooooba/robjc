@@ -123,3 +123,14 @@ unsafe impl<'a> Sync for Context<'a> {}
 lazy_static! {
     pub static ref CONTEXT: sync::RwLock<Context<'static>> = sync::RwLock::new(Context::new());
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ClassHandle;
+    use std::mem;
+
+    #[test]
+    fn object_size() {
+        assert_eq!(mem::size_of::<ClassHandle>(), mem::size_of::<usize>());
+    }
+}

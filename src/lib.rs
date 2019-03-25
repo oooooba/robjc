@@ -86,7 +86,8 @@ pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Class, Id, Imp, Ivar, Method, Module, Sel, StrPtr};
+    use super::str_ptr::StrPtr;
+    use super::{Class, Id, Imp, Ivar, Method, Module, Sel};
     use std::mem;
 
     #[test]
