@@ -6,7 +6,6 @@ use std::sync;
 use super::category::ObjcCategory;
 use super::class::ObjcClass;
 use super::module::ObjcModule;
-use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
 
 #[repr(transparent)]
@@ -16,18 +15,6 @@ pub struct ClassHandle(num::NonZeroUsize);
 impl ClassHandle {
     pub fn new<'a>(class: &'a ObjcClass<'a>) -> ClassHandle {
         ClassHandle(unsafe { num::NonZeroUsize::new_unchecked(class as *const ObjcClass as usize) })
-    }
-}
-
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ObjectHandle(num::NonZeroUsize);
-
-impl ObjectHandle {
-    pub fn new<'a>(object: &'a ObjcObject<'a>) -> ObjectHandle {
-        ObjectHandle(unsafe {
-            num::NonZeroUsize::new_unchecked(object as *const ObjcObject as usize)
-        })
     }
 }
 
@@ -135,16 +122,4 @@ unsafe impl<'a> Sync for Context<'a> {}
 
 lazy_static! {
     pub static ref CONTEXT: sync::RwLock<Context<'static>> = sync::RwLock::new(Context::new());
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{ClassHandle, ObjectHandle};
-    use std::mem;
-
-    #[test]
-    fn object_size() {
-        assert_eq!(mem::size_of::<ClassHandle>(), mem::size_of::<usize>());
-        assert_eq!(mem::size_of::<ObjectHandle>(), mem::size_of::<usize>());
-    }
 }

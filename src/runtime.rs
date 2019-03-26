@@ -1,9 +1,9 @@
 use std::mem;
 
-use super::context::{ClassHandle, ObjectHandle, CONTEXT};
+use super::context::{ClassHandle, CONTEXT};
 use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Class2, Id, Id2, Method, Sel};
+use super::{Bool, Class, Class2, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> *mut u8 {
     let word_size = mem::size_of::<usize>();
@@ -42,12 +42,12 @@ pub extern "C" fn sel_getUid<'a>(_name: StrPtr) -> Sel<'a> {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id2 {
-    Id2(class.0.map(|class| {
+pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
+    Id(class.0.map(|class| {
         let p: &mut ObjcObject =
             unsafe { mem::transmute(alloc(class.get_instance_size() + extra_bytes)) };
         p.initialize(class);
-        ObjectHandle::new(p as &ObjcObject)
+        p as &ObjcObject
     }))
 }
 
@@ -87,9 +87,9 @@ pub extern "C" fn class_getSuperclass(class: Class) -> Class {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn object_dispose(_object: Id2) -> Id2 {
+pub extern "C" fn object_dispose(_object: Id) -> Id {
     // ToDo: free the object
-    Id2(None)
+    Id(None)
 }
 
 #[allow(non_snake_case)]
