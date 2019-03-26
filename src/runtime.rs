@@ -1,9 +1,9 @@
 use std::mem;
 
-use super::context::{ClassHandle, CONTEXT};
+use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Class2, Id, Method, Sel};
+use super::{Bool, Class, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> *mut u8 {
     let word_size = mem::size_of::<usize>();
@@ -109,16 +109,13 @@ pub extern "C" fn class_isMetaClass(class: Class) -> Bool {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_getClass(name: StrPtr) -> Class2 {
+pub extern "C" fn objc_getClass(name: StrPtr) -> Class<'static> {
     objc_get_class(name)
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_get_class(name: StrPtr) -> Class2 {
+pub extern "C" fn objc_get_class(name: StrPtr) -> Class<'static> {
     let ctx = CONTEXT.read().unwrap();
-    Class2(
-        ctx.get_class_entry(&name)
-            .map(|entry| ClassHandle::new(entry.get_class())),
-    )
+    Class(ctx.get_class_entry(&name).map(|entry| entry.get_class()))
 }

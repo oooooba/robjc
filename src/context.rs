@@ -1,22 +1,11 @@
 use std::collections::HashMap;
 use std::mem;
-use std::num;
 use std::sync;
 
 use super::category::ObjcCategory;
 use super::class::ObjcClass;
 use super::module::ObjcModule;
 use super::str_ptr::StrPtr;
-
-#[repr(transparent)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ClassHandle(num::NonZeroUsize);
-
-impl ClassHandle {
-    pub fn new<'a>(class: &'a ObjcClass<'a>) -> ClassHandle {
-        ClassHandle(unsafe { num::NonZeroUsize::new_unchecked(class as *const ObjcClass as usize) })
-    }
-}
 
 pub struct ClassTableEntry<'a> {
     class: &'a ObjcClass<'a>,
@@ -56,27 +45,12 @@ impl<'a> Context<'a> {
         self.class_table.get(name)
     }
 
-    pub fn deref_class(&self, handle: ClassHandle) -> &'a ObjcClass<'a> {
-        unsafe { &*(handle.0.get() as *const ObjcClass) }
-    }
-
-    fn register_class(&mut self, class: &'a ObjcClass<'a>) -> ClassHandle {
-        let handle = ClassHandle::new(class);
-        handle
-    }
-
-    fn register_class_pair(&mut self, class: &'a ObjcClass<'a>) -> (ClassHandle, ClassHandle) {
+    fn register_class_pair(&mut self, class: &'a ObjcClass<'a>) {
         assert!(class.is_class());
-        let class_handle = self.register_class(class);
-
         let meta_class = class.get_class_pointer();
-        let meta_class_handle = self.register_class(meta_class);
-
         let name = class.get_name().clone();
         let entry = ClassTableEntry::new(class, meta_class);
         self.class_table.insert(name, entry);
-
-        (class_handle, meta_class_handle)
     }
 
     pub fn load_module(&mut self, module: &'a ObjcModule) {
