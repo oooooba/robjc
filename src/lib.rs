@@ -14,6 +14,7 @@ mod selector;
 mod str_ptr;
 
 use std::convert;
+use std::mem;
 use std::os::raw;
 use std::ptr;
 
@@ -47,6 +48,26 @@ pub const YES: Bool = Bool(1u8);
 pub const NO: Bool = Bool(0u8);
 
 #[repr(transparent)]
+#[derive(Debug, PartialEq, Eq)]
+pub struct Ptr<T>(ptr::NonNull<T>);
+
+impl<T> Ptr<T> {
+    pub fn as_ref(&self) -> &T {
+        unsafe { self.0.as_ref() }
+    }
+}
+
+impl<T> Clone for Ptr<T> {
+    fn clone(&self) -> Self {
+        unsafe { mem::transmute_copy(self) }
+    }
+}
+
+#[repr(transparent)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NilablePtr<T>(Option<Ptr<T>>);
+
+#[repr(transparent)]
 #[derive(Clone, Debug)]
 pub struct Ivar<'a>(Option<&'a ObjcIvar>);
 
@@ -61,6 +82,10 @@ pub struct Id<'a>(Option<&'a ObjcObject<'a>>);
 #[repr(transparent)]
 #[derive(Clone, Debug)]
 pub struct Sel<'a>(Option<&'a ObjcSelector>);
+
+#[repr(transparent)]
+#[derive(Debug)]
+pub struct Sel2(NilablePtr<ObjcSelector>);
 
 #[repr(transparent)]
 #[derive(Clone)]
@@ -83,11 +108,14 @@ pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
 #[cfg(test)]
 mod tests {
     use super::str_ptr::StrPtr;
-    use super::{Class, Id, Imp, Ivar, Method, Module, Sel};
+    use super::{Class, Id, Imp, Ivar, Method, Module, NilablePtr, Ptr, Sel};
     use std::mem;
 
     #[test]
     fn object_size() {
+        assert_eq!(mem::size_of::<Ptr<()>>(), mem::size_of::<usize>());
+        assert_eq!(mem::size_of::<NilablePtr<()>>(), mem::size_of::<usize>());
+
         assert_eq!(mem::size_of::<Ivar>(), mem::size_of::<usize>());
         assert_eq!(mem::size_of::<Id>(), mem::size_of::<usize>());
         assert_eq!(mem::size_of::<Class>(), mem::size_of::<usize>());

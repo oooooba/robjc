@@ -1,14 +1,14 @@
 use super::class::ObjcClass;
 use super::method::CodePtr;
 use super::object::ObjcObject;
-use super::{Id, Imp, Sel};
+use super::{Id, Imp, Sel2};
 
 #[no_mangle]
-pub extern "C" fn objc_msg_lookup<'a, 'b: 'a>(receiver: Id<'a>, selector: Sel<'b>) -> Imp<'a> {
+pub extern "C" fn objc_msg_lookup<'a>(receiver: Id<'a>, selector: Sel2) -> Imp<'a> {
     match receiver.0 {
         Some(object) => {
             let class = object.get_class_pointer();
-            let selector = match selector.0 {
+            let selector = match (selector.0).0 {
                 Some(selector) => selector,
                 None => {
                     return Imp(CodePtr::null_function());
@@ -30,11 +30,8 @@ pub struct ObjcSuper<'a> {
 }
 
 #[no_mangle]
-pub extern "C" fn objc_msg_lookup_super<'a, 'b: 'a>(
-    super_data: &ObjcSuper<'a>,
-    selector: Sel<'b>,
-) -> Imp<'a> {
-    let selector = match selector.0 {
+pub extern "C" fn objc_msg_lookup_super<'a>(super_data: &ObjcSuper<'a>, selector: Sel2) -> Imp<'a> {
+    let selector = match (selector.0).0 {
         Some(selector) => selector,
         None => {
             return Imp(CodePtr::null_function());
