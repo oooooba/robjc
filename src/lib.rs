@@ -88,12 +88,8 @@ pub struct Class<'a>(Option<&'a ObjcClass<'a>>);
 pub struct Id<'a>(Option<&'a ObjcObject<'a>>);
 
 #[repr(transparent)]
-#[derive(Clone, Debug)]
-pub struct Sel<'a>(Option<&'a ObjcSelector>);
-
-#[repr(transparent)]
 #[derive(Debug)]
-pub struct Sel2(NilablePtr<ObjcSelector>);
+pub struct Sel(NilablePtr<ObjcSelector>);
 
 #[repr(transparent)]
 #[derive(Clone)]

@@ -3,7 +3,7 @@ use std::mem;
 use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Id, Method, Sel2};
+use super::{Bool, Class, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> *mut u8 {
     let word_size = mem::size_of::<usize>();
@@ -24,19 +24,19 @@ pub extern "C" fn object_getClass(object: Id) -> Class {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn sel_getName(_selector: Sel2) -> StrPtr {
+pub extern "C" fn sel_getName(_selector: Sel) -> StrPtr {
     unimplemented!()
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn sel_getTypeEncoding(_selector: Sel2) -> StrPtr {
+pub extern "C" fn sel_getTypeEncoding(_selector: Sel) -> StrPtr {
     unimplemented!()
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn sel_getUid(_name: StrPtr) -> Sel2 {
+pub extern "C" fn sel_getUid(_name: StrPtr) -> Sel {
     unimplemented!()
 }
 
@@ -53,7 +53,7 @@ pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel2) -> Method<'a> {
+pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
     let class = match class.0 {
         Some(class) => class,
         None => return Method(None),
@@ -67,7 +67,7 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel2) 
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel2) -> Method<'a> {
+pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
     let class = match class.0 {
         Some(class) => class,
         None => return Method(None),

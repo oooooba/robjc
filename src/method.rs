@@ -3,17 +3,22 @@ use std::mem;
 use std::slice;
 
 use super::object::ObjcObject;
+use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 use super::Int;
-use super::Sel;
+use super::Ptr;
 
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct CodePtr<'a>(fn(&'a ObjcObject<'a>, &'a Sel<'a>) -> Option<&'a ObjcObject<'a>>);
+pub struct CodePtr<'a>(fn(&'a ObjcObject<'a>, Ptr<ObjcSelector>) -> Option<&'a ObjcObject<'a>>);
 
 impl<'a> CodePtr<'a> {
     pub fn null_function() -> CodePtr<'a> {
-        CodePtr(|_id: &'a ObjcObject<'a>, _sel: &'a Sel<'a>| -> Option<&'a ObjcObject<'a>> { None })
+        CodePtr(
+            |_id: &'a ObjcObject<'a>, _sel: Ptr<ObjcSelector>| -> Option<&'a ObjcObject<'a>> {
+                None
+            },
+        )
     }
 }
 
@@ -26,13 +31,13 @@ impl<'a> fmt::Debug for CodePtr<'a> {
 #[repr(C)]
 #[derive(Debug)]
 pub struct ObjcMethod<'a> {
-    method_name: Sel<'a>,
+    method_name: Ptr<ObjcSelector>,
     method_type: StrPtr,
     method_imp: CodePtr<'a>,
 }
 
 impl<'a> ObjcMethod<'a> {
-    pub fn get_name(&self) -> &Sel {
+    pub fn get_name(&self) -> &Ptr<ObjcSelector> {
         &self.method_name
     }
 
@@ -47,7 +52,7 @@ impl<'a> fmt::Display for ObjcMethod<'a> {
             f,
             "Method @ {:p} [ name: {}, type: {}, imp: {:?}",
             self,
-            unsafe { mem::transmute::<Sel, StrPtr>(self.method_name.clone()) },
+            unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(self.method_name.clone()) },
             self.method_type,
             self.method_imp
         )
