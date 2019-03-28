@@ -5,6 +5,7 @@ use super::category::ObjcCategory;
 use super::class::ObjcClass;
 use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
+use super::Ptr;
 use super::ULong;
 use super::UShort;
 
@@ -55,6 +56,28 @@ impl<'a> ObjcSymtab<'a> {
     pub fn nth_category_ptr_mut(&self, i: usize) -> Option<&mut ObjcCategory> {
         self.nth_def(self.cls_def_cnt() + i)
     }
+
+    pub fn iter_selector(&self) -> ObjcSelectorIterator {
+        ObjcSelectorIterator(self.refs.map(|selector| unsafe {
+            Ptr::new(selector as *const ObjcSelector as *mut ObjcSelector)
+        }))
+    }
+}
+
+pub struct ObjcSelectorIterator(Option<Ptr<ObjcSelector>>);
+
+impl Iterator for ObjcSelectorIterator {
+    type Item = Ptr<ObjcSelector>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let selector = self.0.clone()?;
+        if selector.as_ref().get_id().is_null() {
+            self.0 = None;
+            return None;
+        }
+        self.0 = Some(unsafe { Ptr::new((selector.as_ptr()).offset(1)) });
+        Some(selector)
+    }
 }
 
 impl<'a> fmt::Display for ObjcSymtab<'a> {
@@ -63,18 +86,8 @@ impl<'a> fmt::Display for ObjcSymtab<'a> {
         write!(f, " cls_def_cnt: {},", self.cls_def_cnt)?;
         write!(f, " cat_def_cnt: {},", self.cat_def_cnt)?;
         writeln!(f, " refs:")?;
-        {
-            if let Some(mut selector) = self.refs.clone() {
-                loop {
-                    writeln!(f, "  * {},", selector)?;
-                    if selector.get_id().as_ref().is_none() {
-                        break;
-                    }
-                    selector = unsafe { &*(selector as *const ObjcSelector).offset(1) };
-                }
-            } else {
-                writeln!(f, "  <no selectors>")?;
-            }
+        for selector in self.iter_selector() {
+            writeln!(f, "  * {},", selector.as_ref())?;
         }
         write!(f, ",")?;
         {

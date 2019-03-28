@@ -52,6 +52,14 @@ pub const NO: Bool = Bool(0u8);
 pub struct Ptr<T>(ptr::NonNull<T>);
 
 impl<T> Ptr<T> {
+    pub unsafe fn new(ptr: *mut T) -> Ptr<T> {
+        Ptr(ptr::NonNull::new_unchecked(ptr))
+    }
+
+    pub fn as_ptr(&self) -> *mut T {
+        self.0.as_ptr()
+    }
+
     pub fn as_ref(&self) -> &T {
         unsafe { self.0.as_ref() }
     }

@@ -20,6 +20,10 @@ impl StrPtr {
             Some(ref p) => Some(unsafe { ffi::CStr::from_ptr(p.as_ptr()).to_str().unwrap() }),
         }
     }
+
+    pub fn is_null(&self) -> bool {
+        self.0.is_none()
+    }
 }
 
 impl fmt::Display for StrPtr {
