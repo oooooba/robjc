@@ -101,7 +101,7 @@ pub struct Method<'a>(Option<&'a ObjcMethod<'a>>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
-pub struct Module<'a>(ptr::NonNull<ObjcModule<'a>>);
+pub struct Module<'a>(Ptr<ObjcModule<'a>>);
 
 #[no_mangle]
 pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
