@@ -92,7 +92,7 @@ impl<'a> ObjcClass<'a> {
         }
     }
 
-    pub fn registry_method(
+    pub fn register_method(
         &mut self,
         name: StrPtr,
         method: &'a ObjcMethod<'a>,
@@ -112,7 +112,7 @@ impl<'a> ObjcClass<'a> {
                 let method_name = unsafe {
                     mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.get_name().clone())
                 };
-                self.registry_method(method_name, method);
+                self.register_method(method_name, method);
             }
             method_list_ptr = method_list.get_next().clone();
         }
