@@ -105,16 +105,13 @@ impl<'a> ObjcClass<'a> {
 
     fn initialize_dtable(&mut self, _ctx: &mut Context) {
         self.dtable = Some(Box::new(HashMap::new()));
-        let mut method_list_ptr = self.methods.clone();
-        while let Some(method_list) = method_list_ptr {
-            for i in 0..method_list.method_count() {
-                let method = method_list.nth_method(i).unwrap();
+        if let Some(methods) = self.methods {
+            for method in methods.iter() {
                 let method_name = unsafe {
                     mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.get_name().clone())
                 };
                 self.register_method(method_name, method);
             }
-            method_list_ptr = method_list.get_next().clone();
         }
     }
 }

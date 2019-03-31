@@ -59,6 +59,27 @@ impl<'a> fmt::Display for ObjcMethod<'a> {
     }
 }
 
+pub struct ObjcMethodIterator<'a> {
+    current_list: Option<&'a ObjcMethodList<'a>>,
+    index: usize,
+}
+
+impl<'a> Iterator for ObjcMethodIterator<'a> {
+    type Item = &'a ObjcMethod<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let list = self.current_list?;
+        let index = self.index;
+        if index >= list.method_count() {
+            self.current_list = list.get_next();
+            self.index = 0;
+            return self.next();
+        }
+        self.index += 1;
+        list.nth_method(index)
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct ObjcMethodList<'a> {
@@ -68,16 +89,16 @@ pub struct ObjcMethodList<'a> {
 }
 
 impl<'a> ObjcMethodList<'a> {
-    pub fn get_next(&self) -> &Option<&'a ObjcMethodList<'a>> {
-        &self.method_next
+    fn get_next(&self) -> Option<&'a ObjcMethodList<'a>> {
+        self.method_next
     }
 
     // ToDo: consider whether rename to get_count and its signature
-    pub fn method_count(&self) -> usize {
+    fn method_count(&self) -> usize {
         self.method_count as usize
     }
 
-    pub fn nth_method(&self, i: usize) -> Option<&ObjcMethod> {
+    fn nth_method(&self, i: usize) -> Option<&ObjcMethod> {
         let count = self.method_count();
         if i >= count {
             return None;
@@ -86,6 +107,13 @@ impl<'a> ObjcMethodList<'a> {
             let list = (self as *const ObjcMethodList).offset(1) as *const ObjcMethod;
             let list = slice::from_raw_parts(list, count);
             Some(&list[i])
+        }
+    }
+
+    pub fn iter(&'a self) -> ObjcMethodIterator<'a> {
+        ObjcMethodIterator {
+            current_list: Some(self),
+            index: 0,
         }
     }
 }
