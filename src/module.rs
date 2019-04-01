@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::slice;
 
@@ -18,6 +19,8 @@ pub struct ObjcSymtab<'a> {
     cat_def_cnt: UShort,
     defs: [&'a (); 0],
 }
+
+pub type SelectorMap = HashMap<(StrPtr, StrPtr), Ptr<ObjcSelector>>;
 
 impl<'a> ObjcSymtab<'a> {
     pub fn cls_def_cnt(&self) -> usize {
@@ -61,6 +64,18 @@ impl<'a> ObjcSymtab<'a> {
         ObjcSelectorIterator(self.refs.map(|selector| unsafe {
             Ptr::new(selector as *const ObjcSelector as *mut ObjcSelector)
         }))
+    }
+
+    pub fn create_selector_map(&self) -> SelectorMap {
+        let mut map = HashMap::new();
+        for selector in self.iter_selector() {
+            let id = selector.as_ref().get_id().clone();
+            assert_ne!(id, StrPtr::null());
+            let types = selector.as_ref().get_types().clone();
+            assert_ne!(types, StrPtr::null());
+            map.insert((id, types), selector);
+        }
+        map
     }
 }
 
