@@ -1,16 +1,17 @@
 use std::mem;
+use std::ptr;
 
 use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
 use super::{Bool, Class, Id, Method, Sel};
 
-unsafe fn alloc(len: usize) -> *mut u8 {
+unsafe fn alloc(len: usize) -> (*mut u8, usize) {
     let word_size = mem::size_of::<usize>();
-    let len = (len + word_size - 1) / word_size;
-    let mut vec = Vec::<u8>::with_capacity(len);
-    vec.set_len(len);
-    Box::into_raw(vec.into_boxed_slice()) as *mut u8
+    let num_words = (len + word_size - 1) / word_size;
+    let mut vec = Vec::<usize>::with_capacity(num_words);
+    vec.set_len(num_words);
+    (Box::into_raw(vec.into_boxed_slice()) as *mut u8, num_words)
 }
 
 /*
@@ -44,8 +45,11 @@ pub extern "C" fn sel_getUid(_name: StrPtr) -> Sel {
 #[no_mangle]
 pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
     Id(class.0.map(|class| {
-        let p: &mut ObjcObject =
-            unsafe { mem::transmute(alloc(class.get_instance_size() + extra_bytes)) };
+        let p: &mut ObjcObject = unsafe {
+            let (p, num_words) = alloc(class.get_instance_size() + extra_bytes);
+            ptr::write_bytes(p, 0, mem::size_of::<usize>() * num_words);
+            mem::transmute(p)
+        };
         p.initialize(class);
         p as &ObjcObject
     }))
