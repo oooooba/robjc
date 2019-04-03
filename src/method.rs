@@ -59,38 +59,52 @@ impl<'a> fmt::Display for ObjcMethod<'a> {
     }
 }
 
+// ToDo: fix to use clear algorithm and data structures
 pub struct ObjcMethodIterator<'a> {
-    current_list: Option<&'a ObjcMethodList<'a>>,
-    index: usize,
+    current_list: Ptr<ObjcMethodList<'a>>,
+    index: Option<usize>,
 }
 
 impl<'a> Iterator for ObjcMethodIterator<'a> {
-    type Item = &'a ObjcMethod<'a>;
+    type Item = Ptr<ObjcMethod<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let list = self.current_list?;
-        let index = self.index;
-        if index >= list.method_count() {
-            self.current_list = list.get_next();
-            self.index = 0;
-            return self.next();
+        let index = self.index?;
+        let count = self.current_list.as_ref().method_count();
+        if index < count {
+            self.index = Some(index + 1);
+            unsafe {
+                let list = (self.current_list.as_ptr()).offset(1) as *const ObjcMethod;
+                let list = slice::from_raw_parts(list, count);
+                Some(Ptr::new(&list[index]))
+            }
+        } else {
+            match self.current_list.as_ref().get_next() {
+                Some(next_list) => {
+                    self.current_list = next_list;
+                    self.index = Some(0);
+                    self.next()
+                }
+                None => {
+                    self.index = None;
+                    None
+                }
+            }
         }
-        self.index += 1;
-        list.nth_method(index)
     }
 }
 
 #[repr(C)]
 #[derive(Debug)]
 pub struct ObjcMethodList<'a> {
-    method_next: Option<&'a ObjcMethodList<'a>>,
+    method_next: Option<Ptr<ObjcMethodList<'a>>>,
     method_count: Int,
     method_list: [ObjcMethod<'a>; 0],
 }
 
 impl<'a> ObjcMethodList<'a> {
-    fn get_next(&self) -> Option<&'a ObjcMethodList<'a>> {
-        self.method_next
+    fn get_next(&self) -> Option<Ptr<ObjcMethodList<'a>>> {
+        self.method_next.clone()
     }
 
     // ToDo: consider whether rename to get_count and its signature
@@ -98,7 +112,7 @@ impl<'a> ObjcMethodList<'a> {
         self.method_count as usize
     }
 
-    fn nth_method(&self, i: usize) -> Option<&ObjcMethod> {
+    fn nth_method(&self, i: usize) -> Option<Ptr<ObjcMethod>> {
         let count = self.method_count();
         if i >= count {
             return None;
@@ -106,14 +120,14 @@ impl<'a> ObjcMethodList<'a> {
         unsafe {
             let list = (self as *const ObjcMethodList).offset(1) as *const ObjcMethod;
             let list = slice::from_raw_parts(list, count);
-            Some(&list[i])
+            Some(Ptr::new(&list[i]))
         }
     }
 
     pub fn iter(&'a self) -> ObjcMethodIterator<'a> {
         ObjcMethodIterator {
-            current_list: Some(self),
-            index: 0,
+            current_list: unsafe { Ptr::new(self) },
+            index: Some(0),
         }
     }
 }
@@ -127,7 +141,7 @@ impl<'a> fmt::Display for ObjcMethodList<'a> {
         )?;
         for i in 0..self.method_count() {
             if let Some(method) = self.nth_method(i) {
-                writeln!(f, "  ({}) {},", i, method)?;
+                writeln!(f, "  ({}) {},", i, method.as_ref())?;
             } else {
                 unreachable!()
             }

@@ -26,7 +26,7 @@ pub struct ObjcClass<'a> {
     instance_size: Long,
     ivars: Option<&'a ObjcIvarList>,
     methods: Option<&'a ObjcMethodList<'a>>,
-    dtable: Option<Box<HashMap<StrPtr, &'a ObjcMethod<'a>>>>,
+    dtable: Option<Box<HashMap<StrPtr, Ptr<ObjcMethod<'a>>>>>,
     subclass_list: Option<&'a ()>,
     sibling_list: Option<&'a ()>,
     protocols: Option<&'a ()>,
@@ -65,10 +65,13 @@ impl<'a> ObjcClass<'a> {
     pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<&ObjcMethod<'a>> {
         let method_name = selector.as_ref().get_id().clone();
         let table = self.dtable.as_ref().expect("dtable is not initialized");
-        table.get(&method_name).map(|method| *method).or_else(|| {
-            self.super_pointer
-                .and_then(|super_class| super_class.resolve_method(selector))
-        })
+        table
+            .get(&method_name)
+            .map(|method| method.as_ref())
+            .or_else(|| {
+                self.super_pointer
+                    .and_then(|super_class| super_class.resolve_method(selector))
+            })
     }
 
     pub fn initialize(&mut self, ctx: &mut Context) {
@@ -95,8 +98,8 @@ impl<'a> ObjcClass<'a> {
     pub fn register_method(
         &mut self,
         name: StrPtr,
-        method: &'a ObjcMethod<'a>,
-    ) -> Option<&ObjcMethod<'a>> {
+        method: Ptr<ObjcMethod<'a>>,
+    ) -> Option<Ptr<ObjcMethod<'a>>> {
         self.dtable
             .as_mut()
             .expect("dtable is not initialized")
@@ -108,7 +111,7 @@ impl<'a> ObjcClass<'a> {
         if let Some(methods) = self.methods {
             for method in methods.iter() {
                 let method_name = unsafe {
-                    mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.get_name().clone())
+                    mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.as_ref().get_name().clone())
                 };
                 self.register_method(method_name, method);
             }
