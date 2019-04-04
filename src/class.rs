@@ -63,7 +63,7 @@ impl<'a> ObjcClass<'a> {
     }
 
     pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<&ObjcMethod<'a>> {
-        let method_name = selector.as_ref().get_id().clone();
+        let method_name = selector.get_id().clone();
         let table = self.dtable.as_ref().expect("dtable is not initialized");
         table
             .get(&method_name)
@@ -111,7 +111,7 @@ impl<'a> ObjcClass<'a> {
         if let Some(methods) = self.methods {
             for method in methods.iter() {
                 let method_name = unsafe {
-                    mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.as_ref().get_name().clone())
+                    mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.get_name().clone())
                 };
                 self.register_method(method_name, method);
             }

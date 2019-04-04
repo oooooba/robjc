@@ -15,6 +15,7 @@ mod str_ptr;
 
 use std::convert;
 use std::mem;
+use std::ops;
 use std::os::raw;
 use std::ptr;
 
@@ -68,6 +69,14 @@ impl<T> Ptr<T> {
 impl<T> Clone for Ptr<T> {
     fn clone(&self) -> Self {
         unsafe { mem::transmute_copy(self) }
+    }
+}
+
+impl<T> ops::Deref for Ptr<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
     }
 }
 

@@ -70,7 +70,7 @@ impl<'a> Iterator for ObjcMethodIterator<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.index?;
-        let count = self.current_list.as_ref().method_count();
+        let count = self.current_list.method_count();
         if index < count {
             self.index = Some(index + 1);
             unsafe {
@@ -79,7 +79,7 @@ impl<'a> Iterator for ObjcMethodIterator<'a> {
                 Some(Ptr::new(&list[index]))
             }
         } else {
-            match self.current_list.as_ref().get_next() {
+            match self.current_list.get_next() {
                 Some(next_list) => {
                     self.current_list = next_list;
                     self.index = Some(0);
