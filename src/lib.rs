@@ -84,6 +84,26 @@ impl<T> ops::Deref for Ptr<T> {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NilablePtr<T>(Option<Ptr<T>>);
 
+impl<T> NilablePtr<T> {
+    pub fn new(ptr: Ptr<T>) -> NilablePtr<T> {
+        NilablePtr(Some(ptr))
+    }
+
+    fn wrap(ptr: Option<Ptr<T>>) -> NilablePtr<T> {
+        NilablePtr(ptr)
+    }
+
+    pub fn nil() -> NilablePtr<T> {
+        NilablePtr(None)
+    }
+}
+
+impl<T> convert::From<Option<Ptr<T>>> for NilablePtr<T> {
+    fn from(ptr: Option<Ptr<T>>) -> Self {
+        NilablePtr::wrap(ptr)
+    }
+}
+
 #[repr(transparent)]
 #[derive(Clone, Debug)]
 pub struct Ivar<'a>(Option<&'a ObjcIvar>);
@@ -105,8 +125,8 @@ pub struct Sel(NilablePtr<ObjcSelector>);
 pub struct Imp<'a>(CodePtr<'a>);
 
 #[repr(transparent)]
-#[derive(Clone, Debug)]
-pub struct Method<'a>(Option<&'a ObjcMethod<'a>>);
+#[derive(Debug)]
+pub struct Method<'a>(NilablePtr<ObjcMethod<'a>>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]

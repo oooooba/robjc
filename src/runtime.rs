@@ -4,6 +4,7 @@ use std::ptr;
 use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::str_ptr::StrPtr;
+use super::NilablePtr;
 use super::{Bool, Class, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> (*mut u8, usize) {
@@ -60,13 +61,13 @@ pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
 pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
     let class = match class.0 {
         Some(class) => class,
-        None => return Method(None),
+        None => return Method(NilablePtr::nil()),
     };
     let selector = match (selector.0).0 {
         Some(selector) => selector,
-        None => return Method(None),
+        None => return Method(NilablePtr::nil()),
     };
-    Method(class.resolve_method(selector))
+    Method(NilablePtr::from(class.resolve_method(selector)))
 }
 
 #[allow(non_snake_case)]
@@ -74,13 +75,15 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -
 pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
     let class = match class.0 {
         Some(class) => class,
-        None => return Method(None),
+        None => return Method(NilablePtr::nil()),
     };
     let selector = match (selector.0).0 {
         Some(selector) => selector,
-        None => return Method(None),
+        None => return Method(NilablePtr::nil()),
     };
-    Method(class.get_class_pointer().resolve_method(selector))
+    Method(NilablePtr::from(
+        class.get_class_pointer().resolve_method(selector),
+    ))
 }
 
 #[allow(non_snake_case)]

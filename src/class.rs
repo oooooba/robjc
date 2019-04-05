@@ -62,12 +62,12 @@ impl<'a> ObjcClass<'a> {
         self.info & 0b10 != 0
     }
 
-    pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<&ObjcMethod<'a>> {
+    pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<Ptr<ObjcMethod<'a>>> {
         let method_name = selector.get_id().clone();
         let table = self.dtable.as_ref().expect("dtable is not initialized");
         table
             .get(&method_name)
-            .map(|method| method.as_ref())
+            .map(|method| method.clone())
             .or_else(|| {
                 self.super_pointer
                     .and_then(|super_class| super_class.resolve_method(selector))
