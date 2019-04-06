@@ -19,6 +19,10 @@ impl<T> Ptr<T> {
     pub fn as_ref(&self) -> &T {
         unsafe { self.0.as_ref() }
     }
+
+    pub fn as_mut(&mut self) -> &mut T {
+        unsafe { self.0.as_mut() }
+    }
 }
 
 impl<T> Clone for Ptr<T> {

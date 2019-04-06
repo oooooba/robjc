@@ -12,17 +12,17 @@ use super::UShort;
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcSymtab<'a> {
+pub struct ObjcSymtab {
     _sel_ref_cnt: ULong,
-    refs: Option<&'a ObjcSelector>,
+    refs: Option<Ptr<ObjcSelector>>,
     cls_def_cnt: UShort,
     cat_def_cnt: UShort,
-    defs: [&'a (); 0],
+    defs: [Ptr<()>; 0],
 }
 
 pub type SelectorMap = HashMap<(StrPtr, StrPtr), Ptr<ObjcSelector>>;
 
-impl<'a> ObjcSymtab<'a> {
+impl ObjcSymtab {
     pub fn cls_def_cnt(&self) -> usize {
         self.cls_def_cnt as usize
     }
@@ -36,10 +36,10 @@ impl<'a> ObjcSymtab<'a> {
         if i >= num_entries {
             return None;
         }
-        let addr_defs = &self.defs as *const &() as *const *mut T;
+        let addr_defs = &self.defs as *const Ptr<()> as *mut Ptr<T>;
         unsafe {
-            let defs = slice::from_raw_parts(addr_defs, num_entries);
-            Some(&mut (*defs[i]))
+            let defs = slice::from_raw_parts_mut(addr_defs, num_entries);
+            Some(defs[i].as_mut())
         }
     }
 
@@ -61,9 +61,7 @@ impl<'a> ObjcSymtab<'a> {
     }
 
     pub fn iter_selector(&self) -> ObjcSelectorIterator {
-        ObjcSelectorIterator(self.refs.map(|selector| unsafe {
-            Ptr::new(selector as *const ObjcSelector as *mut ObjcSelector)
-        }))
+        ObjcSelectorIterator(self.refs.clone())
     }
 
     pub fn create_selector_map(&self) -> SelectorMap {
@@ -95,7 +93,7 @@ impl Iterator for ObjcSelectorIterator {
     }
 }
 
-impl<'a> fmt::Display for ObjcSymtab<'a> {
+impl fmt::Display for ObjcSymtab {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Symtab @ {:p} [", self)?;
         write!(f, " cls_def_cnt: {},", self.cls_def_cnt)?;
@@ -127,11 +125,11 @@ pub struct ObjcModule<'a> {
     version: ULong,
     size: ULong,
     name: StrPtr,
-    symtab: &'a ObjcSymtab<'a>,
+    symtab: &'a ObjcSymtab,
 }
 
 impl<'a> ObjcModule<'a> {
-    pub fn get_symtab(&self) -> &ObjcSymtab<'a> {
+    pub fn get_symtab(&self) -> &ObjcSymtab {
         self.symtab
     }
 }
