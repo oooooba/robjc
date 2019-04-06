@@ -29,7 +29,7 @@ impl<'a> ClassTableEntry<'a> {
 pub struct Context<'a> {
     class_table: HashMap<StrPtr, ClassTableEntry<'a>>,
     orphan_classes: Vec<&'a mut ObjcClass<'a>>,
-    _unresolved_categories: Vec<&'a mut ObjcCategory<'a>>,
+    _unresolved_categories: Vec<&'a mut ObjcCategory>,
 }
 
 impl<'a> Context<'a> {
