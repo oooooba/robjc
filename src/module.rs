@@ -121,25 +121,29 @@ impl fmt::Display for ObjcSymtab {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcModule<'a> {
+pub struct ObjcModule {
     version: ULong,
     size: ULong,
     name: StrPtr,
-    symtab: &'a ObjcSymtab,
+    symtab: Ptr<ObjcSymtab>,
 }
 
-impl<'a> ObjcModule<'a> {
-    pub fn get_symtab(&self) -> &ObjcSymtab {
-        self.symtab
+impl ObjcModule {
+    pub fn get_symtab(&self) -> &Ptr<ObjcSymtab> {
+        &self.symtab
     }
 }
 
-impl<'a> fmt::Display for ObjcModule<'a> {
+impl fmt::Display for ObjcModule {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "Module @ {:p} [ name: {}, version: {}, size: {}, symtab: {:p} ]",
-            self, self.name, self.version, self.size, self.symtab
+            self,
+            self.name,
+            self.version,
+            self.size,
+            self.symtab.as_ptr()
         )
     }
 }

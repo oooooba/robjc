@@ -72,8 +72,8 @@ pub struct Imp(CodePtr);
 pub struct Method(NilablePtr<ObjcMethod>);
 
 #[repr(transparent)]
-#[derive(Clone, Debug)]
-pub struct Module<'a>(Ptr<ObjcModule<'a>>);
+#[derive(Debug)]
+pub struct Module(Ptr<ObjcModule>);
 
 #[no_mangle]
 pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
