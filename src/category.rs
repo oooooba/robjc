@@ -8,8 +8,8 @@ use super::str_ptr::StrPtr;
 pub struct ObjcCategory<'a> {
     category_name: StrPtr,
     class_name: StrPtr,
-    instance_methods: Option<&'a ObjcMethodList<'a>>,
-    class_methods: Option<&'a ObjcMethodList<'a>>,
+    instance_methods: Option<&'a ObjcMethodList>,
+    class_methods: Option<&'a ObjcMethodList>,
     protocols: Option<&'a ()>,
 }
 

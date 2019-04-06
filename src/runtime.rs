@@ -1,9 +1,10 @@
 use std::mem;
 use std::ptr;
 
+use super::class::{ObjcClass, ObjcClass2};
 use super::context::CONTEXT;
 use super::object::ObjcObject;
-use super::ptr::NilablePtr;
+use super::ptr::{NilablePtr, Ptr};
 use super::str_ptr::StrPtr;
 use super::{Bool, Class, Id, Method, Sel};
 
@@ -21,7 +22,13 @@ unsafe fn alloc(len: usize) -> (*mut u8, usize) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn object_getClass(object: Id) -> Class {
-    Class(object.0.map(|object| object.get_class_pointer()))
+    Class(
+        object
+            .0
+            .map(|object| object.get_class_pointer())
+            .map(|p| unsafe { &*(p.as_ptr() as *const ObjcClass) }),
+    )
+    //Class(object.0.map(|object| object.get_class_pointer()))
 }
 
 #[allow(non_snake_case)]
@@ -51,14 +58,15 @@ pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
             ptr::write_bytes(p, 0, mem::size_of::<usize>() * num_words);
             mem::transmute(p)
         };
-        p.initialize(class);
+        p.initialize(unsafe { Ptr::new(class as *const ObjcClass as *const ObjcClass2) });
+        //p.initialize(class);
         p as &ObjcObject
     }))
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
+pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -> Method {
     let class = match class.0 {
         Some(class) => class,
         None => return Method(NilablePtr::nil()),
@@ -72,7 +80,7 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> Method<'a> {
+pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> Method {
     let class = match class.0 {
         Some(class) => class,
         None => return Method(NilablePtr::nil()),

@@ -57,7 +57,7 @@ pub struct Class<'a>(Option<&'a ObjcClass<'a>>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
-pub struct Id<'a>(Option<&'a ObjcObject<'a>>);
+pub struct Id<'a>(Option<&'a ObjcObject>);
 
 #[repr(transparent)]
 #[derive(Debug)]
@@ -65,11 +65,11 @@ pub struct Sel(NilablePtr<ObjcSelector>);
 
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct Imp<'a>(CodePtr<'a>);
+pub struct Imp(CodePtr);
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct Method<'a>(NilablePtr<ObjcMethod<'a>>);
+pub struct Method(NilablePtr<ObjcMethod>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]

@@ -25,8 +25,8 @@ pub struct ObjcClass<'a> {
     info: ULong,
     instance_size: Long,
     ivars: Option<&'a ObjcIvarList>,
-    methods: Option<&'a ObjcMethodList<'a>>,
-    dtable: Option<Box<HashMap<StrPtr, Ptr<ObjcMethod<'a>>>>>,
+    methods: Option<&'a ObjcMethodList>,
+    dtable: Option<Box<HashMap<StrPtr, Ptr<ObjcMethod>>>>,
     subclass_list: Option<&'a ()>,
     sibling_list: Option<&'a ()>,
     protocols: Option<&'a ()>,
@@ -62,7 +62,7 @@ impl<'a> ObjcClass<'a> {
         self.info & 0b10 != 0
     }
 
-    pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<Ptr<ObjcMethod<'a>>> {
+    pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<Ptr<ObjcMethod>> {
         let method_name = selector.get_id().clone();
         let table = self.dtable.as_ref().expect("dtable is not initialized");
         table
@@ -98,8 +98,8 @@ impl<'a> ObjcClass<'a> {
     pub fn register_method(
         &mut self,
         name: StrPtr,
-        method: Ptr<ObjcMethod<'a>>,
-    ) -> Option<Ptr<ObjcMethod<'a>>> {
+        method: Ptr<ObjcMethod>,
+    ) -> Option<Ptr<ObjcMethod>> {
         self.dtable
             .as_mut()
             .expect("dtable is not initialized")
@@ -218,3 +218,10 @@ impl<'a> hash::Hash for &ObjcClass<'a> {
         (*self as *const ObjcClass).hash(state);
     }
 }
+
+#[repr(C)]
+#[derive(Debug)]
+// next generation representation of ObjcClass
+pub struct ObjcClass2 {}
+
+impl ObjcClass2 {}

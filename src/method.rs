@@ -3,26 +3,26 @@ use std::mem;
 use std::slice;
 
 use super::object::ObjcObject;
-use super::ptr::Ptr;
+use super::ptr::{NilablePtr, Ptr};
 use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 use super::Int;
 
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct CodePtr<'a>(fn(&'a ObjcObject<'a>, Ptr<ObjcSelector>) -> Option<&'a ObjcObject<'a>>);
+pub struct CodePtr(fn(NilablePtr<ObjcObject>, Ptr<ObjcSelector>) -> NilablePtr<ObjcObject>);
 
-impl<'a> CodePtr<'a> {
-    pub fn null_function() -> CodePtr<'a> {
+impl CodePtr {
+    pub fn null_function() -> CodePtr {
         CodePtr(
-            |_id: &'a ObjcObject<'a>, _sel: Ptr<ObjcSelector>| -> Option<&'a ObjcObject<'a>> {
-                None
+            |_id: NilablePtr<ObjcObject>, _sel: Ptr<ObjcSelector>| -> NilablePtr<ObjcObject> {
+                NilablePtr::nil()
             },
         )
     }
 }
 
-impl<'a> fmt::Debug for CodePtr<'a> {
+impl fmt::Debug for CodePtr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "CodePtr [ {:p} ]", self.0 as *const ())
     }
@@ -30,23 +30,23 @@ impl<'a> fmt::Debug for CodePtr<'a> {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcMethod<'a> {
+pub struct ObjcMethod {
     method_name: Ptr<ObjcSelector>,
     method_type: StrPtr,
-    method_imp: CodePtr<'a>,
+    method_imp: CodePtr,
 }
 
-impl<'a> ObjcMethod<'a> {
+impl ObjcMethod {
     pub fn get_name(&self) -> &Ptr<ObjcSelector> {
         &self.method_name
     }
 
-    pub fn get_imp(&self) -> &CodePtr<'a> {
+    pub fn get_imp(&self) -> &CodePtr {
         &self.method_imp
     }
 }
 
-impl<'a> fmt::Display for ObjcMethod<'a> {
+impl fmt::Display for ObjcMethod {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -60,13 +60,13 @@ impl<'a> fmt::Display for ObjcMethod<'a> {
 }
 
 // ToDo: fix to use clear algorithm and data structures
-pub struct ObjcMethodIterator<'a> {
-    current_list: Ptr<ObjcMethodList<'a>>,
+pub struct ObjcMethodIterator {
+    current_list: Ptr<ObjcMethodList>,
     index: Option<usize>,
 }
 
-impl<'a> Iterator for ObjcMethodIterator<'a> {
-    type Item = Ptr<ObjcMethod<'a>>;
+impl Iterator for ObjcMethodIterator {
+    type Item = Ptr<ObjcMethod>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let index = self.index?;
@@ -96,14 +96,14 @@ impl<'a> Iterator for ObjcMethodIterator<'a> {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcMethodList<'a> {
-    method_next: Option<Ptr<ObjcMethodList<'a>>>,
+pub struct ObjcMethodList {
+    method_next: Option<Ptr<ObjcMethodList>>,
     method_count: Int,
-    method_list: [ObjcMethod<'a>; 0],
+    method_list: [ObjcMethod; 0],
 }
 
-impl<'a> ObjcMethodList<'a> {
-    fn get_next(&self) -> Option<Ptr<ObjcMethodList<'a>>> {
+impl ObjcMethodList {
+    fn get_next(&self) -> Option<Ptr<ObjcMethodList>> {
         self.method_next.clone()
     }
 
@@ -124,7 +124,7 @@ impl<'a> ObjcMethodList<'a> {
         }
     }
 
-    pub fn iter(&'a self) -> ObjcMethodIterator<'a> {
+    pub fn iter(&self) -> ObjcMethodIterator {
         ObjcMethodIterator {
             current_list: unsafe { Ptr::new(self) },
             index: Some(0),
@@ -132,7 +132,7 @@ impl<'a> ObjcMethodList<'a> {
     }
 }
 
-impl<'a> fmt::Display for ObjcMethodList<'a> {
+impl fmt::Display for ObjcMethodList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         writeln!(
             f,
