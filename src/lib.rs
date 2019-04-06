@@ -9,15 +9,13 @@ mod message;
 mod method;
 mod module;
 mod object;
+mod ptr;
 pub mod runtime;
 mod selector;
 mod str_ptr;
 
 use std::convert;
-use std::mem;
-use std::ops;
 use std::os::raw;
-use std::ptr;
 
 use class::ObjcClass;
 use context::CONTEXT;
@@ -25,6 +23,7 @@ use ivar::ObjcIvar;
 use method::{CodePtr, ObjcMethod};
 use module::ObjcModule;
 use object::ObjcObject;
+use ptr::{NilablePtr, Ptr};
 use selector::ObjcSelector;
 
 type UShort = i16;
@@ -47,62 +46,6 @@ impl convert::From<bool> for Bool {
 }
 pub const YES: Bool = Bool(1u8);
 pub const NO: Bool = Bool(0u8);
-
-#[repr(transparent)]
-#[derive(Debug, PartialEq, Eq)]
-pub struct Ptr<T>(ptr::NonNull<T>);
-
-impl<T> Ptr<T> {
-    pub unsafe fn new(ptr: *const T) -> Ptr<T> {
-        Ptr(ptr::NonNull::new_unchecked(ptr as *mut T))
-    }
-
-    pub fn as_ptr(&self) -> *mut T {
-        self.0.as_ptr()
-    }
-
-    pub fn as_ref(&self) -> &T {
-        unsafe { self.0.as_ref() }
-    }
-}
-
-impl<T> Clone for Ptr<T> {
-    fn clone(&self) -> Self {
-        unsafe { mem::transmute_copy(self) }
-    }
-}
-
-impl<T> ops::Deref for Ptr<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-#[repr(transparent)]
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NilablePtr<T>(Option<Ptr<T>>);
-
-impl<T> NilablePtr<T> {
-    pub fn new(ptr: Ptr<T>) -> NilablePtr<T> {
-        NilablePtr(Some(ptr))
-    }
-
-    fn wrap(ptr: Option<Ptr<T>>) -> NilablePtr<T> {
-        NilablePtr(ptr)
-    }
-
-    pub fn nil() -> NilablePtr<T> {
-        NilablePtr(None)
-    }
-}
-
-impl<T> convert::From<Option<Ptr<T>>> for NilablePtr<T> {
-    fn from(ptr: Option<Ptr<T>>) -> Self {
-        NilablePtr::wrap(ptr)
-    }
-}
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
@@ -140,8 +83,9 @@ pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
 
 #[cfg(test)]
 mod tests {
+    use super::ptr::NilablePtr;
     use super::str_ptr::StrPtr;
-    use super::{Class, Id, Imp, Ivar, Method, Module, NilablePtr, Ptr, Sel};
+    use super::{Class, Id, Imp, Ivar, Method, Module, Ptr, Sel};
     use std::mem;
 
     #[test]

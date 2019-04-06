@@ -3,8 +3,8 @@ use std::ptr;
 
 use super::context::CONTEXT;
 use super::object::ObjcObject;
+use super::ptr::NilablePtr;
 use super::str_ptr::StrPtr;
-use super::NilablePtr;
 use super::{Bool, Class, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> (*mut u8, usize) {
@@ -63,7 +63,7 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -
         Some(class) => class,
         None => return Method(NilablePtr::nil()),
     };
-    let selector = match (selector.0).0 {
+    let selector = match selector.0.as_ref() {
         Some(selector) => selector,
         None => return Method(NilablePtr::nil()),
     };
@@ -77,7 +77,7 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
         Some(class) => class,
         None => return Method(NilablePtr::nil()),
     };
-    let selector = match (selector.0).0 {
+    let selector = match selector.0.as_ref() {
         Some(selector) => selector,
         None => return Method(NilablePtr::nil()),
     };

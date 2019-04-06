@@ -4,9 +4,9 @@ use std::slice;
 
 use super::category::ObjcCategory;
 use super::class::ObjcClass;
+use super::ptr::Ptr;
 use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
-use super::Ptr;
 use super::ULong;
 use super::UShort;
 

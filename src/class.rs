@@ -9,10 +9,10 @@ use super::context::Context;
 use super::ivar::ObjcIvarList;
 use super::method::ObjcMethod;
 use super::method::ObjcMethodList;
+use super::ptr::Ptr;
 use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 use super::Long;
-use super::Ptr;
 use super::ULong;
 
 #[repr(C)]

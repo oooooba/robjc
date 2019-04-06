@@ -8,7 +8,7 @@ pub extern "C" fn objc_msg_lookup<'a>(receiver: Id<'a>, selector: Sel) -> Imp<'a
     match receiver.0 {
         Some(object) => {
             let class = object.get_class_pointer();
-            let selector = match (selector.0).0 {
+            let selector = match selector.0.as_ref() {
                 Some(selector) => selector,
                 None => {
                     return Imp(CodePtr::null_function());
@@ -31,7 +31,7 @@ pub struct ObjcSuper<'a> {
 
 #[no_mangle]
 pub extern "C" fn objc_msg_lookup_super<'a>(super_data: &ObjcSuper<'a>, selector: Sel) -> Imp<'a> {
-    let selector = match (selector.0).0 {
+    let selector = match selector.0.as_ref() {
         Some(selector) => selector,
         None => {
             return Imp(CodePtr::null_function());

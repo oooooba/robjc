@@ -3,10 +3,10 @@ use std::mem;
 use std::slice;
 
 use super::object::ObjcObject;
+use super::ptr::Ptr;
 use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 use super::Int;
-use super::Ptr;
 
 #[repr(transparent)]
 #[derive(Clone)]
