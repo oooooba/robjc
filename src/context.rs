@@ -29,7 +29,7 @@ impl ClassTableEntry {
 
 pub struct Context<'a> {
     class_table: HashMap<StrPtr, ClassTableEntry>,
-    orphan_classes: Vec<&'a mut ObjcClass>,
+    orphan_classes: Vec<Ptr<ObjcClass>>,
     _unresolved_categories: Vec<&'a mut ObjcCategory>,
 }
 
@@ -60,7 +60,7 @@ impl<'a> Context<'a> {
             let class = symtab.nth_class_ptr_mut(i).unwrap();
             class.initialize(self);
             if !class.initialize_super_pointer(self) {
-                self.orphan_classes.push(class);
+                self.orphan_classes.push(unsafe { Ptr::new(class) });
             }
 
             let meta_class = symtab
@@ -70,7 +70,7 @@ impl<'a> Context<'a> {
                 .as_mut();
             meta_class.initialize(self);
             if !meta_class.initialize_super_pointer(self) {
-                self.orphan_classes.push(meta_class);
+                self.orphan_classes.push(unsafe { Ptr::new(meta_class) });
             }
 
             let class = symtab.nth_class_ptr_mut(i).unwrap();
@@ -82,8 +82,8 @@ impl<'a> Context<'a> {
         loop {
             let mut orphan_classes = Vec::new();
             mem::swap(&mut self.orphan_classes, &mut orphan_classes);
-            for class in orphan_classes {
-                if !class.initialize_super_pointer(self) {
+            for mut class in orphan_classes {
+                if !class.as_mut().initialize_super_pointer(self) {
                     self.orphan_classes.push(class);
                 }
             }
