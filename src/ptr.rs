@@ -57,8 +57,8 @@ impl<T> NilablePtr<T> {
         NilablePtr(None)
     }
 
-    pub fn as_ref(&self) -> Option<Ptr<T>> {
-        self.0.clone()
+    pub fn as_ref(&self) -> Option<&Ptr<T>> {
+        self.0.as_ref()
     }
 }
 

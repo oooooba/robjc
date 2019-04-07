@@ -72,7 +72,7 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -
         None => return Method(NilablePtr::nil()),
     };
     let selector = match selector.0.as_ref() {
-        Some(selector) => selector,
+        Some(selector) => selector.clone(),
         None => return Method(NilablePtr::nil()),
     };
     Method(NilablePtr::from(class.resolve_method(selector)))
@@ -86,7 +86,7 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
         None => return Method(NilablePtr::nil()),
     };
     let selector = match selector.0.as_ref() {
-        Some(selector) => selector,
+        Some(selector) => selector.clone(),
         None => return Method(NilablePtr::nil()),
     };
     Method(NilablePtr::from(
@@ -96,9 +96,12 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getSuperclass(class: Class) -> Class2 {
+pub extern "C" fn class_getSuperclass(class: Class2) -> Class2 {
     Class2(NilablePtr::from(
-        class.0.and_then(|class| class.super_pointer().clone()),
+        class
+            .0
+            .as_ref()
+            .and_then(|class| class.super_pointer().clone()),
     ))
 }
 
