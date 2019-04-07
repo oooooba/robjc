@@ -1,12 +1,11 @@
 use std::mem;
 use std::ptr;
 
-use super::class::ObjcClass;
 use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::ptr::{NilablePtr, Ptr};
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Class2, Id, Method, Sel};
+use super::{Bool, Class, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> (*mut u8, usize) {
     let word_size = mem::size_of::<usize>();
@@ -22,13 +21,9 @@ unsafe fn alloc(len: usize) -> (*mut u8, usize) {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn object_getClass(object: Id) -> Class {
-    Class(
-        object
-            .0
-            .map(|object| object.get_class_pointer())
-            .map(|p| unsafe { &*(p.as_ptr() as *const ObjcClass) }),
-    )
-    //Class(object.0.map(|object| object.get_class_pointer()))
+    Class(NilablePtr::from(
+        object.0.map(|object| object.get_class_pointer().clone()),
+    ))
 }
 
 #[allow(non_snake_case)]
@@ -51,23 +46,22 @@ pub extern "C" fn sel_getUid(_name: StrPtr) -> Sel {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
-    Id(class.0.map(|class| {
+pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id<'static> {
+    Id(class.0.as_ref().map(|class| {
         let p: &mut ObjcObject = unsafe {
             let (p, num_words) = alloc(class.get_instance_size() + extra_bytes);
             ptr::write_bytes(p, 0, mem::size_of::<usize>() * num_words);
             mem::transmute(p)
         };
-        p.initialize(unsafe { Ptr::new(class) });
-        //p.initialize(class);
+        p.initialize(class.clone());
         p as &ObjcObject
     }))
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -> Method {
-    let class = match class.0 {
+pub extern "C" fn class_getInstanceMethod(class: Class, selector: Sel) -> Method {
+    let class = match class.0.as_ref() {
         Some(class) => class,
         None => return Method(NilablePtr::nil()),
     };
@@ -80,8 +74,8 @@ pub extern "C" fn class_getInstanceMethod<'a>(class: Class<'a>, selector: Sel) -
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> Method {
-    let class = match class.0 {
+pub extern "C" fn class_getClassMethod(class: Class, selector: Sel) -> Method {
+    let class = match class.0.as_ref() {
         Some(class) => class,
         None => return Method(NilablePtr::nil()),
     };
@@ -96,8 +90,8 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getSuperclass(class: Class2) -> Class2 {
-    Class2(NilablePtr::from(
+pub extern "C" fn class_getSuperclass(class: Class) -> Class {
+    Class(NilablePtr::from(
         class
             .0
             .as_ref()
@@ -117,6 +111,7 @@ pub extern "C" fn object_dispose(_object: Id) -> Id {
 pub extern "C" fn class_getName(class: Class) -> StrPtr {
     class
         .0
+        .as_ref()
         .map(|class| class.get_name().clone())
         .unwrap_or(StrPtr::null())
 }
@@ -124,20 +119,20 @@ pub extern "C" fn class_getName(class: Class) -> StrPtr {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn class_isMetaClass(class: Class) -> Bool {
-    Bool::from(class.0.map_or(false, |class| class.is_meta()))
+    Bool::from(class.0.as_ref().map_or(false, |class| class.is_meta()))
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_getClass(name: StrPtr) -> Class2 {
+pub extern "C" fn objc_getClass(name: StrPtr) -> Class {
     objc_get_class(name)
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_get_class(name: StrPtr) -> Class2 {
+pub extern "C" fn objc_get_class(name: StrPtr) -> Class {
     let ctx = CONTEXT.read().unwrap();
-    Class2(NilablePtr::from(
+    Class(NilablePtr::from(
         ctx.get_class_entry(&name)
             .map(|entry| entry.get_class())
             .map(|p| unsafe { Ptr::new(p) }),

@@ -52,12 +52,8 @@ pub const NO: Bool = Bool(0u8);
 pub struct Ivar<'a>(Option<&'a ObjcIvar>);
 
 #[repr(transparent)]
-#[derive(Clone, Debug)]
-pub struct Class<'a>(Option<&'a ObjcClass>);
-
-#[repr(transparent)]
 #[derive(Debug)]
-pub struct Class2(NilablePtr<ObjcClass>);
+pub struct Class(NilablePtr<ObjcClass>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
