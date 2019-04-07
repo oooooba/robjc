@@ -6,7 +6,7 @@ use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::ptr::{NilablePtr, Ptr};
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Id, Method, Sel};
+use super::{Bool, Class, Class2, Id, Method, Sel};
 
 unsafe fn alloc(len: usize) -> (*mut u8, usize) {
     let word_size = mem::size_of::<usize>();
@@ -96,8 +96,10 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_getSuperclass(class: Class) -> Class {
-    Class(class.0.and_then(|class| class.get_super_pointer()))
+pub extern "C" fn class_getSuperclass(class: Class) -> Class2 {
+    Class2(NilablePtr::from(
+        class.0.and_then(|class| class.super_pointer().clone()),
+    ))
 }
 
 #[allow(non_snake_case)]

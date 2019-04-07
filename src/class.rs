@@ -18,7 +18,7 @@ use super::ULong;
 #[derive(Debug)]
 pub struct ObjcClass<'a> {
     class_pointer: Ptr<ObjcClass<'a>>,
-    super_pointer: Option<&'a ObjcClass<'a>>,
+    super_pointer: Option<Ptr<ObjcClass<'a>>>,
     name: StrPtr,
     version: Long,
     info: ULong,
@@ -41,8 +41,8 @@ impl<'a> ObjcClass<'a> {
         &mut self.class_pointer
     }
 
-    pub fn get_super_pointer(&self) -> Option<&ObjcClass<'a>> {
-        self.super_pointer
+    pub fn super_pointer(&self) -> &Option<Ptr<ObjcClass<'a>>> {
+        &self.super_pointer
     }
 
     pub fn get_name(&self) -> &StrPtr {
@@ -69,6 +69,7 @@ impl<'a> ObjcClass<'a> {
             .map(|method| method.clone())
             .or_else(|| {
                 self.super_pointer
+                    .as_ref()
                     .and_then(|super_class| super_class.resolve_method(selector))
             })
     }
@@ -81,13 +82,16 @@ impl<'a> ObjcClass<'a> {
         if self.super_pointer.is_none() {
             return true;
         }
-        let super_class_name: StrPtr = unsafe { mem::transmute(self.super_pointer.unwrap()) };
+        let super_class_name: StrPtr =
+            unsafe { mem::transmute(self.super_pointer.clone().unwrap()) };
         if let Some(entry) = ctx.get_class_entry(&super_class_name) {
-            self.super_pointer = Some(if self.is_meta() {
+            let p = if self.is_meta() {
                 entry.get_meta_class()
             } else {
                 entry.get_class()
-            });
+            };
+            let p = unsafe { Ptr::new(p) };
+            self.super_pointer = Some(p);
             true
         } else {
             false
@@ -142,10 +146,10 @@ impl<'a> fmt::Display for ObjcClass<'a> {
             unreachable!()
         }
         {
-            match self.super_pointer {
+            match self.super_pointer.as_ref() {
                 Some(p) => {
-                    let s = unsafe { mem::transmute::<&ObjcClass, StrPtr>(p) };
-                    writeln!(f, " super: {} ({:p}),", s, p)?
+                    let s = unsafe { mem::transmute::<Ptr<ObjcClass>, StrPtr>(p.clone()) };
+                    writeln!(f, " super: {} ({:p}),", s, p.as_ptr())?
                 }
                 None => writeln!(f, " super: null,")?,
             }
