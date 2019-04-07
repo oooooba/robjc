@@ -1,6 +1,7 @@
 use super::class::ObjcClass;
 use super::method::CodePtr;
 use super::object::ObjcObject;
+use super::ptr::{NilablePtr, Ptr};
 use super::{Id, Imp, Sel};
 
 #[no_mangle]
@@ -24,13 +25,13 @@ pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcSuper<'a> {
-    self_obj: Option<&'a ObjcObject>,
-    super_class: &'a ObjcClass,
+pub struct ObjcSuper {
+    self_obj: NilablePtr<ObjcObject>,
+    super_class: Ptr<ObjcClass>,
 }
 
 #[no_mangle]
-pub extern "C" fn objc_msg_lookup_super<'a>(super_data: &ObjcSuper<'a>, selector: Sel) -> Imp {
+pub extern "C" fn objc_msg_lookup_super(super_data: Ptr<ObjcSuper>, selector: Sel) -> Imp {
     let selector = match selector.0.as_ref() {
         Some(selector) => selector.clone(),
         None => {
