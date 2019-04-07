@@ -208,10 +208,3 @@ impl fmt::Display for ObjcClass {
         write!(f, "]")
     }
 }
-
-#[repr(C)]
-#[derive(Debug)]
-// next generation representation of ObjcClass
-pub struct ObjcClass2 {}
-
-impl ObjcClass2 {}

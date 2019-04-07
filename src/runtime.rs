@@ -1,7 +1,7 @@
 use std::mem;
 use std::ptr;
 
-use super::class::{ObjcClass, ObjcClass2};
+use super::class::ObjcClass;
 use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::ptr::{NilablePtr, Ptr};
@@ -58,7 +58,7 @@ pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
             ptr::write_bytes(p, 0, mem::size_of::<usize>() * num_words);
             mem::transmute(p)
         };
-        p.initialize(unsafe { Ptr::new(class as *const ObjcClass as *const ObjcClass2) });
+        p.initialize(unsafe { Ptr::new(class) });
         //p.initialize(class);
         p as &ObjcObject
     }))
