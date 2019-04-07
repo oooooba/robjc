@@ -1,7 +1,5 @@
-use std::cmp;
 use std::collections::HashMap;
 use std::fmt;
-use std::hash;
 use std::mem;
 
 use super::context::Context;
@@ -16,9 +14,9 @@ use super::ULong;
 
 #[repr(C)]
 #[derive(Debug)]
-pub struct ObjcClass<'a> {
-    class_pointer: Ptr<ObjcClass<'a>>,
-    super_pointer: Option<Ptr<ObjcClass<'a>>>,
+pub struct ObjcClass {
+    class_pointer: Ptr<ObjcClass>,
+    super_pointer: Option<Ptr<ObjcClass>>,
     name: StrPtr,
     version: Long,
     info: ULong,
@@ -29,19 +27,19 @@ pub struct ObjcClass<'a> {
     subclass_list: Option<Ptr<()>>,
     sibling_list: Option<Ptr<()>>,
     protocols: Option<Ptr<()>>,
-    gc_object_type: Option<&'a ()>,
+    gc_object_type: Option<Ptr<()>>,
 }
 
-impl<'a> ObjcClass<'a> {
-    pub fn class_pointer(&self) -> &Ptr<ObjcClass<'a>> {
+impl ObjcClass {
+    pub fn class_pointer(&self) -> &Ptr<ObjcClass> {
         &self.class_pointer
     }
 
-    pub fn class_pointer_mut(&mut self) -> &mut Ptr<ObjcClass<'a>> {
+    pub fn class_pointer_mut(&mut self) -> &mut Ptr<ObjcClass> {
         &mut self.class_pointer
     }
 
-    pub fn super_pointer(&self) -> &Option<Ptr<ObjcClass<'a>>> {
+    pub fn super_pointer(&self) -> &Option<Ptr<ObjcClass>> {
         &self.super_pointer
     }
 
@@ -78,7 +76,7 @@ impl<'a> ObjcClass<'a> {
         self.initialize_dtable(ctx);
     }
 
-    pub fn initialize_super_pointer(&mut self, ctx: &mut Context<'a>) -> bool {
+    pub fn initialize_super_pointer<'a>(&mut self, ctx: &mut Context<'a>) -> bool {
         if self.super_pointer.is_none() {
             return true;
         }
@@ -122,7 +120,7 @@ impl<'a> ObjcClass<'a> {
     }
 }
 
-impl<'a> fmt::Display for ObjcClass<'a> {
+impl fmt::Display for ObjcClass {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         assert!(self.is_class() || self.is_meta());
         writeln!(
@@ -208,20 +206,6 @@ impl<'a> fmt::Display for ObjcClass<'a> {
                 ))
         )?;
         write!(f, "]")
-    }
-}
-
-impl<'a> cmp::PartialEq for &ObjcClass<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        *self as *const ObjcClass == *other as *const ObjcClass
-    }
-}
-
-impl<'a> cmp::Eq for &ObjcClass<'a> {}
-
-impl<'a> hash::Hash for &ObjcClass<'a> {
-    fn hash<H: hash::Hasher>(&self, state: &mut H) {
-        (*self as *const ObjcClass).hash(state);
     }
 }
 

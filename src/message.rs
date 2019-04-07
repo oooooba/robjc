@@ -34,7 +34,7 @@ pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
 #[derive(Debug)]
 pub struct ObjcSuper<'a> {
     self_obj: Option<&'a ObjcObject>,
-    super_class: &'a ObjcClass<'a>,
+    super_class: &'a ObjcClass,
 }
 
 #[no_mangle]

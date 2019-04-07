@@ -8,27 +8,27 @@ use super::module::ObjcModule;
 use super::str_ptr::StrPtr;
 
 pub struct ClassTableEntry<'a> {
-    class: &'a ObjcClass<'a>,
-    meta_class: &'a ObjcClass<'a>,
+    class: &'a ObjcClass,
+    meta_class: &'a ObjcClass,
 }
 
 impl<'a> ClassTableEntry<'a> {
-    fn new(class: &'a ObjcClass<'a>, meta_class: &'a ObjcClass<'a>) -> ClassTableEntry<'a> {
+    fn new(class: &'a ObjcClass, meta_class: &'a ObjcClass) -> ClassTableEntry<'a> {
         ClassTableEntry { class, meta_class }
     }
 
-    pub fn get_class<'b>(&self) -> &'b ObjcClass<'a> {
-        self.class
+    pub fn get_class(&self) -> &ObjcClass {
+        &self.class
     }
 
-    pub fn get_meta_class<'b>(&self) -> &'b ObjcClass<'a> {
-        self.meta_class
+    pub fn get_meta_class(&self) -> &ObjcClass {
+        &self.meta_class
     }
 }
 
 pub struct Context<'a> {
     class_table: HashMap<StrPtr, ClassTableEntry<'a>>,
-    orphan_classes: Vec<&'a mut ObjcClass<'a>>,
+    orphan_classes: Vec<&'a mut ObjcClass>,
     _unresolved_categories: Vec<&'a mut ObjcCategory>,
 }
 
@@ -45,7 +45,7 @@ impl<'a> Context<'a> {
         self.class_table.get(name)
     }
 
-    fn register_class_pair(&mut self, class: &'a ObjcClass<'a>) {
+    fn register_class_pair(&mut self, class: &'a ObjcClass) {
         assert!(class.is_class());
         let meta_class = class.class_pointer();
         let name = class.get_name().clone();

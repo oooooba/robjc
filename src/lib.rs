@@ -53,11 +53,11 @@ pub struct Ivar<'a>(Option<&'a ObjcIvar>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]
-pub struct Class<'a>(Option<&'a ObjcClass<'a>>);
+pub struct Class<'a>(Option<&'a ObjcClass>);
 
 #[repr(transparent)]
 #[derive(Debug)]
-pub struct Class2<'a>(NilablePtr<ObjcClass<'a>>);
+pub struct Class2(NilablePtr<ObjcClass>);
 
 #[repr(transparent)]
 #[derive(Clone, Debug)]

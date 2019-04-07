@@ -129,13 +129,17 @@ pub extern "C" fn class_isMetaClass(class: Class) -> Bool {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_getClass(name: StrPtr) -> Class<'static> {
+pub extern "C" fn objc_getClass(name: StrPtr) -> Class2 {
     objc_get_class(name)
 }
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn objc_get_class(name: StrPtr) -> Class<'static> {
+pub extern "C" fn objc_get_class(name: StrPtr) -> Class2 {
     let ctx = CONTEXT.read().unwrap();
-    Class(ctx.get_class_entry(&name).map(|entry| entry.get_class()))
+    Class2(NilablePtr::from(
+        ctx.get_class_entry(&name)
+            .map(|entry| entry.get_class())
+            .map(|p| unsafe { Ptr::new(p) }),
+    ))
 }
