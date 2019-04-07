@@ -22,7 +22,10 @@ unsafe fn alloc(len: usize) -> (*mut u8, usize) {
 #[no_mangle]
 pub extern "C" fn object_getClass(object: Id) -> Class {
     Class(NilablePtr::from(
-        object.0.map(|object| object.get_class_pointer().clone()),
+        object
+            .0
+            .as_ref()
+            .map(|object| object.get_class_pointer().clone()),
     ))
 }
 
@@ -46,16 +49,16 @@ pub extern "C" fn sel_getUid(_name: StrPtr) -> Sel {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id<'static> {
-    Id(class.0.as_ref().map(|class| {
+pub extern "C" fn class_createInstance(class: Class, extra_bytes: usize) -> Id {
+    Id(NilablePtr::from(class.0.as_ref().map(|class| {
         let p: &mut ObjcObject = unsafe {
             let (p, num_words) = alloc(class.get_instance_size() + extra_bytes);
             ptr::write_bytes(p, 0, mem::size_of::<usize>() * num_words);
             mem::transmute(p)
         };
         p.initialize(class.clone());
-        p as &ObjcObject
-    }))
+        unsafe { Ptr::new(p) }
+    })))
 }
 
 #[allow(non_snake_case)]
@@ -103,7 +106,7 @@ pub extern "C" fn class_getSuperclass(class: Class) -> Class {
 #[no_mangle]
 pub extern "C" fn object_dispose(_object: Id) -> Id {
     // ToDo: free the object
-    Id(None)
+    Id(NilablePtr::nil())
 }
 
 #[allow(non_snake_case)]

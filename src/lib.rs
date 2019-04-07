@@ -56,8 +56,8 @@ pub struct Ivar<'a>(Option<&'a ObjcIvar>);
 pub struct Class(NilablePtr<ObjcClass>);
 
 #[repr(transparent)]
-#[derive(Clone, Debug)]
-pub struct Id<'a>(Option<&'a ObjcObject>);
+#[derive(Debug)]
+pub struct Id(NilablePtr<ObjcObject>);
 
 #[repr(transparent)]
 #[derive(Debug)]
