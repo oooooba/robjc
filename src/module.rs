@@ -31,7 +31,7 @@ impl ObjcSymtab {
         self.cat_def_cnt as usize
     }
 
-    fn nth_def<T>(&self, i: usize) -> Option<&mut T> {
+    fn nth_def<T>(&self, i: usize) -> Option<&mut Ptr<T>> {
         let num_entries = self.cls_def_cnt() + self.cat_def_cnt();
         if i >= num_entries {
             return None;
@@ -39,24 +39,24 @@ impl ObjcSymtab {
         let addr_defs = &self.defs as *const Ptr<()> as *mut Ptr<T>;
         unsafe {
             let defs = slice::from_raw_parts_mut(addr_defs, num_entries);
-            Some(defs[i].as_mut())
+            Some(&mut defs[i])
         }
     }
 
-    pub fn nth_class_ptr(&self, i: usize) -> Option<&ObjcClass> {
-        self.nth_def(i).map(|class| class as &ObjcClass)
+    pub fn nth_class_ptr(&self, i: usize) -> Option<&Ptr<ObjcClass>> {
+        self.nth_def(i).map(|class| class as &Ptr<ObjcClass>)
     }
 
-    pub fn nth_class_ptr_mut(&self, i: usize) -> Option<&mut ObjcClass> {
+    pub fn nth_class_ptr_mut(&mut self, i: usize) -> Option<&mut Ptr<ObjcClass>> {
         self.nth_def(i)
     }
 
-    pub fn nth_category_ptr(&self, i: usize) -> Option<&ObjcCategory> {
+    pub fn nth_category_ptr(&self, i: usize) -> Option<&Ptr<ObjcCategory>> {
         self.nth_def(self.cls_def_cnt() + i)
-            .map(|class| class as &ObjcCategory)
+            .map(|category| category as &Ptr<ObjcCategory>)
     }
 
-    pub fn nth_category_ptr_mut(&self, i: usize) -> Option<&mut ObjcCategory> {
+    pub fn nth_category_ptr_mut(&self, i: usize) -> Option<&mut Ptr<ObjcCategory>> {
         self.nth_def(self.cls_def_cnt() + i)
     }
 
@@ -108,7 +108,7 @@ impl fmt::Display for ObjcSymtab {
             for i in 0..self.cls_def_cnt() {
                 match self.nth_class_ptr(i) {
                     Some(cls) => {
-                        writeln!(f, "  ({}) {},", i, cls)?;
+                        writeln!(f, "  ({}) {},", i, cls.as_ref())?;
                         writeln!(f, "  ({}/m) {},", i, cls.class_pointer().as_ref())?;
                     }
                     None => unreachable!(),

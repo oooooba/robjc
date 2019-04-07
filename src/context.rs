@@ -60,22 +60,16 @@ impl<'a> Context<'a> {
             let class = symtab.nth_class_ptr_mut(i).unwrap();
             class.initialize(self);
             if !class.initialize_super_pointer(self) {
-                self.orphan_classes.push(unsafe { Ptr::new(class) });
+                self.orphan_classes.push(class.clone());
             }
 
-            let meta_class = symtab
-                .nth_class_ptr_mut(i)
-                .unwrap()
-                .class_pointer_mut()
-                .as_mut();
+            let meta_class = class.class_pointer_mut();
             meta_class.initialize(self);
             if !meta_class.initialize_super_pointer(self) {
-                self.orphan_classes.push(unsafe { Ptr::new(meta_class) });
+                self.orphan_classes.push(meta_class.clone());
             }
 
-            let class = symtab.nth_class_ptr_mut(i).unwrap();
-            let class = unsafe { Ptr::new(class) };
-            self.register_class_pair(class);
+            self.register_class_pair(class.clone());
         }
 
         let mut num_orphan_classes = self.orphan_classes.len();

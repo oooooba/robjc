@@ -39,6 +39,12 @@ impl<T> ops::Deref for Ptr<T> {
     }
 }
 
+impl<T> ops::DerefMut for Ptr<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.as_mut()
+    }
+}
+
 #[repr(transparent)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NilablePtr<T>(Option<Ptr<T>>);
