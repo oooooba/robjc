@@ -90,7 +90,7 @@ pub extern "C" fn class_getClassMethod<'a>(class: Class<'a>, selector: Sel) -> M
         None => return Method(NilablePtr::nil()),
     };
     Method(NilablePtr::from(
-        class.get_class_pointer().resolve_method(selector),
+        class.class_pointer().resolve_method(selector),
     ))
 }
 

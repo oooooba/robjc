@@ -47,14 +47,14 @@ impl<'a> Context<'a> {
 
     fn register_class_pair(&mut self, class: &'a ObjcClass<'a>) {
         assert!(class.is_class());
-        let meta_class = class.get_class_pointer();
+        let meta_class = class.class_pointer();
         let name = class.get_name().clone();
         let entry = ClassTableEntry::new(class, meta_class);
         self.class_table.insert(name, entry);
     }
 
-    pub fn load_module(&mut self, module: &'a ObjcModule) {
-        let symtab = module.get_symtab();
+    pub fn load_module(&mut self, module: &'a mut ObjcModule) {
+        let symtab = module.symtab_mut();
         for i in 0..symtab.cls_def_cnt() {
             let class = symtab.nth_class_ptr_mut(i).unwrap();
             class.initialize(self);
@@ -62,8 +62,11 @@ impl<'a> Context<'a> {
                 self.orphan_classes.push(class);
             }
 
-            let meta_class =
-                unsafe { symtab.nth_class_ptr_mut(i).unwrap().get_mut_class_pointer() };
+            let meta_class = symtab
+                .nth_class_ptr_mut(i)
+                .unwrap()
+                .class_pointer_mut()
+                .as_mut();
             meta_class.initialize(self);
             if !meta_class.initialize_super_pointer(self) {
                 self.orphan_classes.push(meta_class);

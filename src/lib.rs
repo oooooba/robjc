@@ -76,7 +76,7 @@ pub struct Method(NilablePtr<ObjcMethod>);
 pub struct Module(Ptr<ObjcModule>);
 
 #[no_mangle]
-pub extern "C" fn __objc_exec_class(module: &'static ObjcModule) {
+pub extern "C" fn __objc_exec_class(module: &'static mut ObjcModule) {
     let mut ctx = CONTEXT.write().unwrap();
     ctx.load_module(module);
 }

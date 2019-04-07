@@ -109,7 +109,7 @@ impl fmt::Display for ObjcSymtab {
                 match self.nth_class_ptr(i) {
                     Some(cls) => {
                         writeln!(f, "  ({}) {},", i, cls)?;
-                        writeln!(f, "  ({}/m) {},", i, cls.get_class_pointer())?;
+                        writeln!(f, "  ({}/m) {},", i, cls.class_pointer().as_ref())?;
                     }
                     None => unreachable!(),
                 }
@@ -129,8 +129,12 @@ pub struct ObjcModule {
 }
 
 impl ObjcModule {
-    pub fn get_symtab(&self) -> &Ptr<ObjcSymtab> {
+    pub fn symtab(&self) -> &Ptr<ObjcSymtab> {
         &self.symtab
+    }
+
+    pub fn symtab_mut(&mut self) -> &mut Ptr<ObjcSymtab> {
+        &mut self.symtab
     }
 }
 

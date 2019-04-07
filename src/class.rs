@@ -1,4 +1,3 @@
-use std::cell;
 use std::cmp;
 use std::collections::HashMap;
 use std::fmt;
@@ -18,7 +17,7 @@ use super::ULong;
 #[repr(C)]
 #[derive(Debug)]
 pub struct ObjcClass<'a> {
-    class_pointer: cell::UnsafeCell<&'a ObjcClass<'a>>,
+    class_pointer: Ptr<ObjcClass<'a>>,
     super_pointer: Option<&'a ObjcClass<'a>>,
     name: StrPtr,
     version: Long,
@@ -34,12 +33,12 @@ pub struct ObjcClass<'a> {
 }
 
 impl<'a> ObjcClass<'a> {
-    pub unsafe fn get_mut_class_pointer(&self) -> &mut ObjcClass {
-        *(self.class_pointer.get() as *mut &mut ObjcClass)
+    pub fn class_pointer(&self) -> &Ptr<ObjcClass<'a>> {
+        &self.class_pointer
     }
 
-    pub fn get_class_pointer(&self) -> &ObjcClass<'a> {
-        unsafe { *self.class_pointer.get() }
+    pub fn class_pointer_mut(&mut self) -> &mut Ptr<ObjcClass<'a>> {
+        &mut self.class_pointer
     }
 
     pub fn get_super_pointer(&self) -> Option<&ObjcClass<'a>> {
@@ -133,12 +132,12 @@ impl<'a> fmt::Display for ObjcClass<'a> {
             writeln!(
                 f,
                 " class: {} ({:p}),",
-                self.get_class_pointer().name,
-                self.get_class_pointer()
+                self.class_pointer().name,
+                self.class_pointer()
             )?;
         } else if self.is_meta() {
-            let s = unsafe { mem::transmute::<&ObjcClass, StrPtr>(self.get_class_pointer()) };
-            writeln!(f, " class: {} ({:p}),", s, self.get_class_pointer())?;
+            let s = unsafe { mem::transmute::<&ObjcClass, StrPtr>(self.class_pointer()) };
+            writeln!(f, " class: {} ({:p}),", s, self.class_pointer())?;
         } else {
             unreachable!()
         }
