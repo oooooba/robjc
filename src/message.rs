@@ -17,7 +17,7 @@ pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
             };
             Imp(class
                 .resolve_method(selector)
-                .map_or(CodePtr::null_function(), |method| method.get_imp().clone()))
+                .map_or(CodePtr::null_function(), |method| method.imp().clone()))
         }
         None => Imp(CodePtr::null_function()),
     }
@@ -41,5 +41,5 @@ pub extern "C" fn objc_msg_lookup_super(super_data: Ptr<ObjcSuper>, selector: Se
     Imp(super_data
         .super_class
         .resolve_method(selector)
-        .map_or(CodePtr::null_function(), |method| method.get_imp().clone()))
+        .map_or(CodePtr::null_function(), |method| method.imp().clone()))
 }

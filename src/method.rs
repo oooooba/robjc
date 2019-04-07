@@ -32,16 +32,20 @@ impl fmt::Debug for CodePtr {
 #[derive(Debug)]
 pub struct ObjcMethod {
     method_name: Ptr<ObjcSelector>,
-    method_type: StrPtr,
+    method_types: StrPtr,
     method_imp: CodePtr,
 }
 
 impl ObjcMethod {
-    pub fn get_name(&self) -> &Ptr<ObjcSelector> {
+    pub fn name(&self) -> &Ptr<ObjcSelector> {
         &self.method_name
     }
 
-    pub fn get_imp(&self) -> &CodePtr {
+    pub fn types(&self) -> &StrPtr {
+        &self.method_types
+    }
+
+    pub fn imp(&self) -> &CodePtr {
         &self.method_imp
     }
 }
@@ -53,7 +57,7 @@ impl fmt::Display for ObjcMethod {
             "Method @ {:p} [ name: {}, type: {}, imp: {:?}",
             self,
             unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(self.method_name.clone()) },
-            self.method_type,
+            self.method_types,
             self.method_imp
         )
     }
