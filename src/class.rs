@@ -23,12 +23,12 @@ pub struct ObjcClass<'a> {
     version: Long,
     info: ULong,
     instance_size: Long,
-    ivars: Option<&'a ObjcIvarList>,
-    methods: Option<&'a ObjcMethodList>,
+    ivars: Option<Ptr<ObjcIvarList>>,
+    methods: Option<Ptr<ObjcMethodList>>,
     dtable: Option<Box<HashMap<StrPtr, Ptr<ObjcMethod>>>>,
-    subclass_list: Option<&'a ()>,
-    sibling_list: Option<&'a ()>,
-    protocols: Option<&'a ()>,
+    subclass_list: Option<Ptr<()>>,
+    sibling_list: Option<Ptr<()>>,
+    protocols: Option<Ptr<()>>,
     gc_object_type: Option<&'a ()>,
 }
 
@@ -111,7 +111,7 @@ impl<'a> ObjcClass<'a> {
 
     fn initialize_dtable(&mut self, _ctx: &mut Context) {
         self.dtable = Some(Box::new(HashMap::new()));
-        if let Some(methods) = self.methods {
+        if let Some(methods) = self.methods.as_ref() {
             for method in methods.iter() {
                 let method_name = unsafe {
                     mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.get_name().clone())
@@ -164,14 +164,17 @@ impl<'a> fmt::Display for ObjcClass<'a> {
             " ivars: {},",
             self.ivars
                 .as_ref()
-                .map_or("null".to_string(), |ivars| format!("{}", ivars))
+                .map_or("null".to_string(), |ivars| format!("{}", ivars.as_ref()))
         )?;
         writeln!(
             f,
             " methods: {},",
             self.methods
                 .as_ref()
-                .map_or("null".to_string(), |methods| format!("{}", methods))
+                .map_or("null".to_string(), |methods| format!(
+                    "{}",
+                    methods.as_ref()
+                ))
         )?;
         writeln!(f, " dtable: disabled,")?;
         writeln!(
