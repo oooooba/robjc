@@ -76,7 +76,7 @@ impl ObjcClass {
         self.initialize_dtable(ctx);
     }
 
-    pub fn initialize_super_pointer<'a>(&mut self, ctx: &mut Context<'a>) -> bool {
+    pub fn initialize_super_pointer(&mut self, ctx: &mut Context) -> bool {
         if self.super_pointer.is_none() {
             return true;
         }

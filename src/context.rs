@@ -27,14 +27,14 @@ impl ClassTableEntry {
     }
 }
 
-pub struct Context<'a> {
+pub struct Context {
     class_table: HashMap<StrPtr, ClassTableEntry>,
     orphan_classes: Vec<Ptr<ObjcClass>>,
-    _unresolved_categories: Vec<&'a mut ObjcCategory>,
+    _unresolved_categories: Vec<Ptr<ObjcCategory>>,
 }
 
-impl<'a> Context<'a> {
-    fn new() -> Context<'a> {
+impl Context {
+    fn new() -> Context {
         Context {
             class_table: HashMap::new(),
             orphan_classes: Vec::new(),
@@ -54,7 +54,7 @@ impl<'a> Context<'a> {
         self.class_table.insert(name, entry);
     }
 
-    pub fn load_module(&mut self, module: &'a mut ObjcModule) {
+    pub fn load_module(&mut self, module: &mut ObjcModule) {
         let symtab = module.symtab_mut();
         for i in 0..symtab.cls_def_cnt() {
             let class = symtab.nth_class_ptr_mut(i).unwrap();
@@ -90,9 +90,9 @@ impl<'a> Context<'a> {
     }
 }
 
-unsafe impl<'a> Send for Context<'a> {}
-unsafe impl<'a> Sync for Context<'a> {}
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
 
 lazy_static! {
-    pub static ref CONTEXT: sync::RwLock<Context<'static>> = sync::RwLock::new(Context::new());
+    pub static ref CONTEXT: sync::RwLock<Context> = sync::RwLock::new(Context::new());
 }
