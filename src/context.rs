@@ -5,29 +5,30 @@ use std::sync;
 use super::category::ObjcCategory;
 use super::class::ObjcClass;
 use super::module::ObjcModule;
+use super::ptr::Ptr;
 use super::str_ptr::StrPtr;
 
-pub struct ClassTableEntry<'a> {
-    class: &'a ObjcClass,
-    meta_class: &'a ObjcClass,
+pub struct ClassTableEntry {
+    class: Ptr<ObjcClass>,
+    meta_class: Ptr<ObjcClass>,
 }
 
-impl<'a> ClassTableEntry<'a> {
-    fn new(class: &'a ObjcClass, meta_class: &'a ObjcClass) -> ClassTableEntry<'a> {
+impl ClassTableEntry {
+    fn new(class: Ptr<ObjcClass>, meta_class: Ptr<ObjcClass>) -> ClassTableEntry {
         ClassTableEntry { class, meta_class }
     }
 
-    pub fn get_class(&self) -> &ObjcClass {
+    pub fn class(&self) -> &Ptr<ObjcClass> {
         &self.class
     }
 
-    pub fn get_meta_class(&self) -> &ObjcClass {
+    pub fn meta_class(&self) -> &Ptr<ObjcClass> {
         &self.meta_class
     }
 }
 
 pub struct Context<'a> {
-    class_table: HashMap<StrPtr, ClassTableEntry<'a>>,
+    class_table: HashMap<StrPtr, ClassTableEntry>,
     orphan_classes: Vec<&'a mut ObjcClass>,
     _unresolved_categories: Vec<&'a mut ObjcCategory>,
 }
@@ -41,13 +42,13 @@ impl<'a> Context<'a> {
         }
     }
 
-    pub fn get_class_entry(&self, name: &StrPtr) -> Option<&ClassTableEntry<'a>> {
+    pub fn get_class_entry(&self, name: &StrPtr) -> Option<&ClassTableEntry> {
         self.class_table.get(name)
     }
 
-    fn register_class_pair(&mut self, class: &'a ObjcClass) {
+    fn register_class_pair(&mut self, class: Ptr<ObjcClass>) {
         assert!(class.is_class());
-        let meta_class = class.class_pointer();
+        let meta_class = class.class_pointer().clone();
         let name = class.get_name().clone();
         let entry = ClassTableEntry::new(class, meta_class);
         self.class_table.insert(name, entry);
@@ -73,6 +74,7 @@ impl<'a> Context<'a> {
             }
 
             let class = symtab.nth_class_ptr_mut(i).unwrap();
+            let class = unsafe { Ptr::new(class) };
             self.register_class_pair(class);
         }
 

@@ -84,12 +84,11 @@ impl ObjcClass {
             unsafe { mem::transmute(self.super_pointer.clone().unwrap()) };
         if let Some(entry) = ctx.get_class_entry(&super_class_name) {
             let p = if self.is_meta() {
-                entry.get_meta_class()
+                entry.meta_class()
             } else {
-                entry.get_class()
+                entry.class()
             };
-            let p = unsafe { Ptr::new(p) };
-            self.super_pointer = Some(p);
+            self.super_pointer = Some(p.clone());
             true
         } else {
             false

@@ -137,7 +137,6 @@ pub extern "C" fn objc_get_class(name: StrPtr) -> Class {
     let ctx = CONTEXT.read().unwrap();
     Class(NilablePtr::from(
         ctx.get_class_entry(&name)
-            .map(|entry| entry.get_class())
-            .map(|p| unsafe { Ptr::new(p) }),
+            .map(|entry| entry.class().clone()),
     ))
 }
