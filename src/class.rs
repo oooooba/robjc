@@ -74,7 +74,8 @@ impl ObjcClass {
     }
 
     pub fn initialize(&mut self, ctx: &mut Context) {
-        self.initialize_dtable(ctx);
+        self.dtable = Some(Box::new(HashMap::new()));
+        self.defer_resolving_methods(ctx);
     }
 
     pub fn initialize_super_pointer(&mut self, ctx: &mut Context) -> bool {
@@ -108,14 +109,10 @@ impl ObjcClass {
             .insert((name, types), method)
     }
 
-    fn initialize_dtable(&mut self, _ctx: &mut Context) {
-        self.dtable = Some(Box::new(HashMap::new()));
+    fn defer_resolving_methods(&mut self, ctx: &mut Context) {
         if let Some(methods) = self.methods.as_ref() {
             for method in methods.iter() {
-                let method_name =
-                    unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.name().clone()) };
-                let method_types = method.types().clone();
-                self.register_method(method_name, method_types, method);
+                ctx.append_unresolved_methods(unsafe { Ptr::new(self) }, method);
             }
         }
     }

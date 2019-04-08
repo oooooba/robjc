@@ -48,6 +48,11 @@ impl ObjcMethod {
     pub fn imp(&self) -> &CodePtr {
         &self.method_imp
     }
+
+    pub unsafe fn link_to_selector(&mut self, mut name: Ptr<ObjcSelector>) -> Ptr<ObjcSelector> {
+        mem::swap(&mut self.method_name, &mut name);
+        name
+    }
 }
 
 impl fmt::Display for ObjcMethod {

@@ -4,8 +4,10 @@ use std::sync;
 
 use super::category::ObjcCategory;
 use super::class::ObjcClass;
+use super::method::ObjcMethod;
 use super::module::ObjcModule;
 use super::ptr::Ptr;
+use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 
 pub struct ClassTableEntry {
@@ -30,6 +32,7 @@ impl ClassTableEntry {
 pub struct Context {
     class_table: HashMap<StrPtr, ClassTableEntry>,
     orphan_classes: Vec<Ptr<ObjcClass>>,
+    unresolved_methods: Vec<(Ptr<ObjcClass>, Ptr<ObjcMethod>)>,
     _unresolved_categories: Vec<Ptr<ObjcCategory>>,
 }
 
@@ -38,6 +41,7 @@ impl Context {
         Context {
             class_table: HashMap::new(),
             orphan_classes: Vec::new(),
+            unresolved_methods: Vec::new(),
             _unresolved_categories: Vec::new(),
         }
     }
@@ -52,6 +56,39 @@ impl Context {
         let name = class.get_name().clone();
         let entry = ClassTableEntry::new(class, meta_class);
         self.class_table.insert(name, entry);
+    }
+
+    pub fn append_unresolved_methods(&mut self, class: Ptr<ObjcClass>, method: Ptr<ObjcMethod>) {
+        self.unresolved_methods.push((class, method));
+    }
+
+    fn link_selectors_to_methods(&mut self, module: &mut ObjcModule) {
+        let selector_map = module.symtab().create_selector_map();
+        let mut num_unresolved_methods = self.unresolved_methods.len();
+        loop {
+            let mut unresolved_methods = Vec::new();
+            mem::swap(&mut self.unresolved_methods, &mut unresolved_methods);
+
+            for (mut class, mut method) in unresolved_methods {
+                let name =
+                    unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.name().clone()) };
+                let types = method.types().clone();
+                if let Some(selector) = selector_map.get(&(name.clone(), types.clone())) {
+                    unsafe {
+                        method.link_to_selector(selector.clone());
+                    }
+                    class.register_method(name, types, method);
+                } else {
+                    self.unresolved_methods.push((class, method))
+                }
+            }
+
+            let new_num_unresolved_methods = self.unresolved_methods.len();
+            if new_num_unresolved_methods == num_unresolved_methods {
+                break;
+            }
+            num_unresolved_methods = new_num_unresolved_methods;
+        }
     }
 
     pub fn load_module(&mut self, module: &mut ObjcModule) {
@@ -87,6 +124,8 @@ impl Context {
             }
             num_orphan_classes = new_num_orphan_classes;
         }
+
+        self.link_selectors_to_methods(module);
     }
 }
 
