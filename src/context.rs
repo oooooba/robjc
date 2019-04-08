@@ -62,6 +62,24 @@ impl Context {
         self.unresolved_methods.push((class, method));
     }
 
+    fn resolve_orphan_classes(&mut self) {
+        let mut num_orphan_classes = self.orphan_classes.len();
+        loop {
+            let mut orphan_classes = Vec::new();
+            mem::swap(&mut self.orphan_classes, &mut orphan_classes);
+            for mut class in orphan_classes {
+                if !class.as_mut().initialize_super_pointer(self) {
+                    self.orphan_classes.push(class);
+                }
+            }
+            let new_num_orphan_classes = self.orphan_classes.len();
+            if new_num_orphan_classes == num_orphan_classes {
+                break;
+            }
+            num_orphan_classes = new_num_orphan_classes;
+        }
+    }
+
     fn link_selectors_to_methods(&mut self, module: &mut ObjcModule) {
         let selector_map = module.symtab().create_selector_map();
         let mut num_unresolved_methods = self.unresolved_methods.len();
@@ -109,22 +127,7 @@ impl Context {
             self.register_class_pair(class.clone());
         }
 
-        let mut num_orphan_classes = self.orphan_classes.len();
-        loop {
-            let mut orphan_classes = Vec::new();
-            mem::swap(&mut self.orphan_classes, &mut orphan_classes);
-            for mut class in orphan_classes {
-                if !class.as_mut().initialize_super_pointer(self) {
-                    self.orphan_classes.push(class);
-                }
-            }
-            let new_num_orphan_classes = self.orphan_classes.len();
-            if new_num_orphan_classes == num_orphan_classes {
-                break;
-            }
-            num_orphan_classes = new_num_orphan_classes;
-        }
-
+        self.resolve_orphan_classes();
         self.link_selectors_to_methods(module);
     }
 }
