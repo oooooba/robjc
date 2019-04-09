@@ -31,8 +31,12 @@ pub extern "C" fn object_getClass(object: Id) -> Class {
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "C" fn sel_getName(_selector: Sel) -> StrPtr {
-    unimplemented!()
+pub extern "C" fn sel_getName(selector: Sel) -> StrPtr {
+    selector
+        .0
+        .as_ref()
+        .map(|selector| selector.get_id().clone())
+        .expect("currently, null selector is not supported")
 }
 
 #[allow(non_snake_case)]
