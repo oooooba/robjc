@@ -1,5 +1,6 @@
 use std::fmt;
 
+use super::context::Context;
 use super::method::ObjcMethodList;
 use super::ptr::Ptr;
 use super::str_ptr::StrPtr;
@@ -14,7 +15,27 @@ pub struct ObjcCategory {
     protocols: Option<Ptr<()>>,
 }
 
-impl ObjcCategory {}
+impl ObjcCategory {
+    pub fn initialize(&mut self, _ctx: &mut Context) {}
+
+    pub fn defer_resolving_methods(&self, ctx: &mut Context) -> bool {
+        let (class, meta_class) = match ctx.get_class_entry(&self.class_name) {
+            Some(entry) => (entry.class().clone(), entry.meta_class().clone()),
+            None => return false,
+        };
+        if let Some(methods) = self.instance_methods.as_ref() {
+            for method in methods.iter() {
+                ctx.append_unresolved_methods(class.clone(), method);
+            }
+        }
+        if let Some(methods) = self.class_methods.as_ref() {
+            for method in methods.iter() {
+                ctx.append_unresolved_methods(meta_class.clone(), method);
+            }
+        }
+        true
+    }
+}
 
 impl fmt::Display for ObjcCategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

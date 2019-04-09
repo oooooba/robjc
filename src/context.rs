@@ -127,6 +127,11 @@ impl Context {
             self.register_class_pair(class.clone());
         }
 
+        for mut category in symtab.iter_category() {
+            category.as_mut().initialize(self);
+            category.as_mut().defer_resolving_methods(self);
+        }
+
         self.resolve_orphan_classes();
         self.link_selectors_to_methods(module);
     }
