@@ -23,7 +23,7 @@ pub struct ObjcClass {
     instance_size: Long,
     ivars: Option<Ptr<ObjcIvarList>>,
     methods: Option<Ptr<ObjcMethodList>>,
-    dtable: Option<Box<HashMap<(StrPtr, StrPtr), Ptr<ObjcMethod>>>>,
+    dtable: Option<Box<HashMap<Ptr<ObjcSelector>, Ptr<ObjcMethod>>>>,
     subclass_list: Option<Ptr<()>>,
     sibling_list: Option<Ptr<()>>,
     protocols: Option<Ptr<()>>,
@@ -60,11 +60,9 @@ impl ObjcClass {
     }
 
     pub fn resolve_method(&self, selector: Ptr<ObjcSelector>) -> Option<Ptr<ObjcMethod>> {
-        let method_name = selector.get_id().clone();
-        let method_types = selector.get_types().clone();
         let table = self.dtable.as_ref().expect("dtable is not initialized");
         table
-            .get(&(method_name, method_types))
+            .get(&selector)
             .map(|method| method.clone())
             .or_else(|| {
                 self.super_pointer
@@ -99,14 +97,13 @@ impl ObjcClass {
 
     pub fn register_method(
         &mut self,
-        name: StrPtr,
-        types: StrPtr,
+        selector: Ptr<ObjcSelector>,
         method: Ptr<ObjcMethod>,
     ) -> Option<Ptr<ObjcMethod>> {
         self.dtable
             .as_mut()
             .expect("dtable is not initialized")
-            .insert((name, types), method)
+            .insert(selector, method)
     }
 
     fn defer_resolving_methods(&mut self, ctx: &mut Context) {

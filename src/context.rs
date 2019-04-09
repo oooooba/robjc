@@ -91,11 +91,11 @@ impl Context {
                 let name =
                     unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.name().clone()) };
                 let types = method.types().clone();
-                if let Some(selector) = selector_map.get(&(name.clone(), types.clone())) {
+                if let Some(selector) = selector_map.get(&(name, types)) {
                     unsafe {
                         method.link_to_selector(selector.clone());
                     }
-                    class.register_method(name, types, method);
+                    class.register_method(selector.clone(), method);
                 } else {
                     self.unresolved_methods.push((class, method))
                 }

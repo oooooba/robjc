@@ -1,10 +1,12 @@
+use std::cmp;
 use std::convert;
+use std::hash;
 use std::mem;
 use std::ops;
 use std::ptr;
 
 #[repr(transparent)]
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub struct Ptr<T>(ptr::NonNull<T>);
 
 impl<T> Ptr<T> {
@@ -42,6 +44,20 @@ impl<T> ops::Deref for Ptr<T> {
 impl<T> ops::DerefMut for Ptr<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.as_mut()
+    }
+}
+
+impl<T> cmp::PartialEq for Ptr<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl<T> cmp::Eq for Ptr<T> {}
+
+impl<T> hash::Hash for Ptr<T> {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
     }
 }
 
