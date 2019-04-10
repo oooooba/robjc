@@ -47,3 +47,10 @@ build_and_test object_is_meta_class.m
 build_and_test accessing_ivars.m
 
 build_and_test _cmd.m
+
+build_and_test trivial.m
+
+build_and_test static-1.m
+build_and_test static-2.m
+
+build_and_test selector-1.m
