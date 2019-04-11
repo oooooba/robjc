@@ -111,8 +111,7 @@ impl Context {
 
     pub fn load_module(&mut self, module: &mut ObjcModule) {
         let symtab = module.symtab_mut();
-        for i in 0..symtab.cls_def_cnt() {
-            let class = symtab.nth_class_ptr_mut(i).unwrap();
+        for mut class in symtab.iter_class() {
             class.initialize(self);
             if !class.initialize_super_pointer(self) {
                 self.orphan_classes.push(class.clone());

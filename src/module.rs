@@ -60,6 +60,13 @@ impl ObjcSymtab {
         self.nth_def(self.cls_def_cnt() + i)
     }
 
+    pub fn iter_class(&self) -> ObjcClassIterator {
+        ObjcClassIterator {
+            symtab: unsafe { Ptr::new(self) },
+            index: 0,
+        }
+    }
+
     pub fn iter_category(&self) -> ObjcCategoryIterator {
         ObjcCategoryIterator {
             symtab: unsafe { Ptr::new(self) },
@@ -81,6 +88,25 @@ impl ObjcSymtab {
             map.insert((id, types), selector);
         }
         map
+    }
+}
+
+pub struct ObjcClassIterator {
+    symtab: Ptr<ObjcSymtab>,
+    index: usize,
+}
+
+impl Iterator for ObjcClassIterator {
+    type Item = Ptr<ObjcClass>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let symtab = self.symtab.as_ref();
+        let index = self.index;
+        if index >= symtab.cls_def_cnt() {
+            return None;
+        }
+        self.index += 1;
+        symtab.nth_class_ptr(index).map(|p| p.clone())
     }
 }
 
