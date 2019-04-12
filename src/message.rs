@@ -6,21 +6,16 @@ use super::{Id, Imp, Sel};
 
 #[no_mangle]
 pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
-    match receiver.0.as_ref() {
-        Some(object) => {
+    let codeptr = match (receiver.0.as_ref(), selector.0.as_ref()) {
+        (Some(object), Some(selector)) => {
             let class = object.get_class_pointer();
-            let selector = match selector.0.as_ref() {
-                Some(selector) => selector.clone(),
-                None => {
-                    return Imp(CodePtr::null_function());
-                }
-            };
-            Imp(class
-                .resolve_method(selector)
-                .map_or(CodePtr::null_function(), |method| method.imp().clone()))
+            class
+                .resolve_method(selector.clone())
+                .map_or(CodePtr::null_function(), |method| method.imp().clone())
         }
-        None => Imp(CodePtr::null_function()),
-    }
+        _ => CodePtr::null_function(),
+    };
+    Imp(codeptr)
 }
 
 #[repr(C)]
