@@ -1,21 +1,23 @@
 use super::class::ObjcClass;
-use super::method::CodePtr;
+use super::method::Procedure;
 use super::object::ObjcObject;
 use super::ptr::{NilablePtr, Ptr};
 use super::{Id, Imp, Sel};
 
 #[no_mangle]
 pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
-    let codeptr = match (receiver.0.as_ref(), selector.0.as_ref()) {
+    let procedure = match (receiver.0.as_ref(), selector.0.as_ref()) {
         (Some(object), Some(selector)) => {
             let class = object.get_class_pointer();
             class
                 .resolve_method(selector.clone())
-                .map_or(CodePtr::null_function(), |method| method.imp().clone())
+                .map_or(Procedure::new_null_procedure(), |method| {
+                    method.imp().clone()
+                })
         }
-        _ => CodePtr::null_function(),
+        _ => Procedure::new_null_procedure(),
     };
-    Imp(codeptr)
+    Imp(procedure)
 }
 
 #[repr(C)]
@@ -30,11 +32,13 @@ pub extern "C" fn objc_msg_lookup_super(super_data: Ptr<ObjcSuper>, selector: Se
     let selector = match selector.0.as_ref() {
         Some(selector) => selector.clone(),
         None => {
-            return Imp(CodePtr::null_function());
+            return Imp(Procedure::new_null_procedure());
         }
     };
     Imp(super_data
         .super_class
         .resolve_method(selector)
-        .map_or(CodePtr::null_function(), |method| method.imp().clone()))
+        .map_or(Procedure::new_null_procedure(), |method| {
+            method.imp().clone()
+        }))
 }

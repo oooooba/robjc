@@ -8,23 +8,19 @@ use super::selector::ObjcSelector;
 use super::str_ptr::StrPtr;
 use super::Int;
 
-#[repr(transparent)]
-#[derive(Clone)]
-pub struct CodePtr(fn(NilablePtr<ObjcObject>, Ptr<ObjcSelector>) -> NilablePtr<ObjcObject>);
+#[derive(Debug)]
+pub struct Procedure;
 
-impl CodePtr {
-    pub fn null_function() -> CodePtr {
-        CodePtr(
-            |_id: NilablePtr<ObjcObject>, _sel: Ptr<ObjcSelector>| -> NilablePtr<ObjcObject> {
-                NilablePtr::nil()
-            },
-        )
+impl Procedure {
+    fn null_procedure(
+        _id: NilablePtr<ObjcObject>,
+        _sel: Ptr<ObjcSelector>,
+    ) -> NilablePtr<ObjcObject> {
+        NilablePtr::nil()
     }
-}
 
-impl fmt::Debug for CodePtr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "CodePtr [ {:p} ]", self.0 as *const ())
+    pub fn new_null_procedure() -> Ptr<Procedure> {
+        unsafe { Ptr::new(Procedure::null_procedure as *const Procedure) }
     }
 }
 
@@ -33,7 +29,7 @@ impl fmt::Debug for CodePtr {
 pub struct ObjcMethod {
     method_name: Ptr<ObjcSelector>,
     method_types: StrPtr,
-    method_imp: CodePtr,
+    method_imp: Ptr<Procedure>,
 }
 
 impl ObjcMethod {
@@ -45,7 +41,7 @@ impl ObjcMethod {
         &self.method_types
     }
 
-    pub fn imp(&self) -> &CodePtr {
+    pub fn imp(&self) -> &Ptr<Procedure> {
         &self.method_imp
     }
 

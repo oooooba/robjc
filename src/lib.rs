@@ -20,7 +20,7 @@ use std::os::raw;
 use class::ObjcClass;
 use context::CONTEXT;
 use ivar::ObjcIvar;
-use method::{CodePtr, ObjcMethod};
+use method::{ObjcMethod, Procedure};
 use module::ObjcModule;
 use object::ObjcObject;
 use ptr::{NilablePtr, Ptr};
@@ -65,7 +65,7 @@ pub struct Sel(NilablePtr<ObjcSelector>);
 
 #[repr(transparent)]
 #[derive(Clone)]
-pub struct Imp(CodePtr);
+pub struct Imp(Ptr<Procedure>);
 
 #[repr(transparent)]
 #[derive(Debug)]
