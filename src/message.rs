@@ -17,7 +17,7 @@ pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
         }
         _ => Procedure::new_null_procedure(),
     };
-    Imp(procedure)
+    Imp(NilablePtr::new(procedure))
 }
 
 #[repr(C)]
@@ -32,13 +32,15 @@ pub extern "C" fn objc_msg_lookup_super(super_data: Ptr<ObjcSuper>, selector: Se
     let selector = match selector.0.as_ref() {
         Some(selector) => selector.clone(),
         None => {
-            return Imp(Procedure::new_null_procedure());
+            return Imp(NilablePtr::new(Procedure::new_null_procedure()));
         }
     };
-    Imp(super_data
-        .super_class
-        .resolve_method(selector)
-        .map_or(Procedure::new_null_procedure(), |method| {
-            method.imp().clone()
-        }))
+    Imp(NilablePtr::new(
+        super_data
+            .super_class
+            .resolve_method(selector)
+            .map_or(Procedure::new_null_procedure(), |method| {
+                method.imp().clone()
+            }),
+    ))
 }

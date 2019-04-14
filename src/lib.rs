@@ -64,8 +64,8 @@ pub struct Id(NilablePtr<ObjcObject>);
 pub struct Sel(NilablePtr<ObjcSelector>);
 
 #[repr(transparent)]
-#[derive(Clone)]
-pub struct Imp(Ptr<Procedure>);
+#[derive(Debug)]
+pub struct Imp(NilablePtr<Procedure>);
 
 #[repr(transparent)]
 #[derive(Debug)]
