@@ -5,7 +5,7 @@ use super::context::CONTEXT;
 use super::object::ObjcObject;
 use super::ptr::{NilablePtr, Ptr};
 use super::str_ptr::StrPtr;
-use super::{Bool, Class, Id, Method, Sel};
+use super::{Bool, Class, Id, Imp, Method, Sel};
 
 unsafe fn alloc(len: usize) -> (*mut u8, usize) {
     let word_size = mem::size_of::<usize>();
@@ -142,5 +142,13 @@ pub extern "C" fn objc_get_class(name: StrPtr) -> Class {
     Class(NilablePtr::from(
         ctx.get_class_entry(&name)
             .map(|entry| entry.class().clone()),
+    ))
+}
+
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn method_getImplementation(method: Method) -> Imp {
+    Imp(NilablePtr::from(
+        method.0.as_ref().map(|method| method.imp().clone()),
     ))
 }

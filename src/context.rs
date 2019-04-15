@@ -90,8 +90,12 @@ impl Context {
             for (mut class, mut method) in unresolved_methods {
                 let name =
                     unsafe { mem::transmute::<Ptr<ObjcSelector>, StrPtr>(method.name().clone()) };
-                let types = method.types().clone();
-                if let Some(selector) = selector_map.get(&(name, types)) {
+                let _types = method.types().clone();
+                /*
+                 * // ToDo: currently, ignore types
+                 * if let Some(selector) = selector_map.get(&(name, _types)) {
+                 */
+                if let Some(selector) = selector_map.get(&name) {
                     unsafe {
                         method.link_to_selector(selector.clone());
                     }

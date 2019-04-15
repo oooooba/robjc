@@ -54,3 +54,5 @@ build_and_test static-1.m
 build_and_test static-2.m
 
 build_and_test selector-1.m
+
+build_and_test IMP.m

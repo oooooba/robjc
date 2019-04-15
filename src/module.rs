@@ -20,7 +20,11 @@ pub struct ObjcSymtab {
     defs: [Ptr<()>; 0],
 }
 
+pub type SelectorMap = HashMap<StrPtr, Ptr<ObjcSelector>>;
+/*
+ * // ToDo: currently, ignore types
 pub type SelectorMap = HashMap<(StrPtr, StrPtr), Ptr<ObjcSelector>>;
+ */
 
 impl ObjcSymtab {
     pub fn cls_def_cnt(&self) -> usize {
@@ -83,9 +87,13 @@ impl ObjcSymtab {
         for selector in self.iter_selector() {
             let id = selector.as_ref().get_id().clone();
             assert_ne!(id, StrPtr::null());
-            let types = selector.as_ref().get_types().clone();
-            assert_ne!(types, StrPtr::null());
-            map.insert((id, types), selector);
+            let _types = selector.as_ref().get_types().clone();
+            /*
+             * // ToDo: currently, ignore types
+             * assert_ne!(_types, StrPtr::null());
+             * map.insert((id, _types), selector);
+             */
+            map.insert(id, selector);
         }
         map
     }
