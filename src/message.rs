@@ -7,6 +7,9 @@ use super::{Id, Imp, Sel};
 #[no_mangle]
 pub extern "C" fn objc_msg_lookup(receiver: Id, selector: Sel) -> Imp {
     let procedure = match (receiver.0.as_ref(), selector.0.as_ref()) {
+        (Some(_), Some(selector)) if selector.get_id().as_ref() == Some("self") => {
+            Procedure::new_identity_procedure()
+        }
         (Some(object), Some(selector)) => {
             let class = object.get_class_pointer();
             class

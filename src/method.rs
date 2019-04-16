@@ -22,6 +22,17 @@ impl Procedure {
     pub fn new_null_procedure() -> Ptr<Procedure> {
         unsafe { Ptr::new(Procedure::null_procedure as *const Procedure) }
     }
+
+    fn identity_procedure(
+        zelf: NilablePtr<ObjcObject>,
+        _sel: Ptr<ObjcSelector>,
+    ) -> NilablePtr<ObjcObject> {
+        zelf
+    }
+
+    pub fn new_identity_procedure() -> Ptr<Procedure> {
+        unsafe { Ptr::new(Procedure::identity_procedure as *const Procedure) }
+    }
 }
 
 #[repr(C)]

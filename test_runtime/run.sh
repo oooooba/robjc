@@ -56,3 +56,5 @@ build_and_test static-2.m
 build_and_test selector-1.m
 
 build_and_test IMP.m
+
+build_and_test root_methods.m
