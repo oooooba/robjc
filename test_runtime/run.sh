@@ -22,6 +22,10 @@ function build_and_test(){
     fi
 }
 
+build_and_test _cmd.m
+build_and_test accessing_ivars.m
+build_and_test class_self-1.m
+build_and_test class_self-2.m
 build_and_test class-1.m
 build_and_test class-2.m
 build_and_test class-3.m
@@ -36,25 +40,12 @@ build_and_test class-11.m
 build_and_test class-12.m
 build_and_test class-13.m
 build_and_test class-14.m
-
-build_and_test class_self-1.m
-build_and_test class_self-2.m
-
+build_and_test IMP.m
 build_and_test object_is_class.m
-
 build_and_test object_is_meta_class.m
-
-build_and_test accessing_ivars.m
-
-build_and_test _cmd.m
-
-build_and_test trivial.m
-
+build_and_test root_methods.m
+build_and_test selector-1.m
 build_and_test static-1.m
 build_and_test static-2.m
-
-build_and_test selector-1.m
-
-build_and_test IMP.m
-
-build_and_test root_methods.m
+build_and_test trivial.m
+build_and_test va_method.m
