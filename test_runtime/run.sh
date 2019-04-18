@@ -24,6 +24,7 @@ function build_and_test(){
 
 build_and_test _cmd.m
 build_and_test accessing_ivars.m
+build_and_test bycopy-1.m
 build_and_test class_self-1.m
 build_and_test class_self-2.m
 build_and_test class-1.m
