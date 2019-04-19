@@ -152,3 +152,9 @@ pub extern "C" fn method_getImplementation(method: Method) -> Imp {
         method.0.as_ref().map(|method| method.imp().clone()),
     ))
 }
+
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "C" fn __objc_class_name_Protocol() {
+    panic!("calling unknown function")
+}

@@ -44,6 +44,7 @@ build_and_test class-14.m
 build_and_test IMP.m
 build_and_test object_is_class.m
 build_and_test object_is_meta_class.m
+build_and_test protocol.m
 build_and_test redefining_self.m
 build_and_test root_methods.m
 build_and_test selector-1.m
